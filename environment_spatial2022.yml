@@ -1,0 +1,64 @@
+name: spatial2022
+
+channels:
+  - conda-forge
+  - anaconda
+  - bioconda
+  - defaults
+  - r
+  - rdonnelly
+  - psi4
+  - r_test
+  - free
+  - fastchan
+  - ccordoba12
+  - grst
+  - Eugene_T
+  - letaylor
+  - ohsu-comp-bio
+
+dependencies:
+  - python=3.9
+  - tree
+  - compilers
+  - notebook
+  - jupyter_contrib_nbextensions
+  - jupyter_client
+  - nbconvert
+  - pandoc
+  - python-annoy
+  - multicore-tsne
+  - requests
+  - python-annoy
+  - scvi-tools
+  - mnnpy
+  - scanpy
+  - scanorama
+  - numpy=1.21.6
+  - numba
+  - llvmlite
+  - python-igraph
+  - umap-learn
+  - louvain
+  - leidenalg
+  - matplotlib-venn
+  - scrublet
+  - gseapy
+  - pybiomart
+  - squidpy>=1.2.2
+  - morphops
+  - napari
+  - starfish
+  - glib
+  - libvips
+  - libpq
+  - pip
+  - pip:
+      - git+https://github.com/ludvb/xfuse@master
+      - gsea-api
+      - tissuumaps[full]
+      - git+https://github.com/czarnewski/eggplant@master
+      - psfmodels
+      - planktonspace
+      - numpy==1.22.4
+      
