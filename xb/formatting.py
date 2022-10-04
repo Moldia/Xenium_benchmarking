@@ -8,6 +8,8 @@ import shutil
 import os.path
 from scipy.io import mmread
 import tifffile as tf
+from scipy.spatial import ConvexHull, convex_hull_plot_2d
+from anndata import AnnData
 
 
 def format_xenium_adata(path,tag,output_path):
@@ -95,3 +97,32 @@ def format_background(path):
     position1_series.axes
     position1 = position1_series.asarray()
     tf.imwrite(path+'/background.tiff',position1)
+    
+    
+def keep_nuclei(adata1,overlaps_nucleus=1):
+    subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
+    ct1=pd.crosstab(subset1['cell_id'],subset1['feature_name'])
+    adataobs=adata1.obs.loc[adata1.obs['cell_id'].isin(ct1.index),:]
+    ct1=ct1.loc[:,adata1.var.index]
+    adataobs.index=adataobs['cell_id']
+    adataobs.index.name='ind'
+    ct1=ct1.loc[ct1.index.isin(adataobs['cell_id']),:]
+    adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs,var=adata1.var)
+    return adata1nuc
+    
+def cell_area(adata_sp: AnnData,pipeline_output=True):
+    """Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2"
+    Parameters
+    ----------
+    adata_sp : AnnData
+        annotated ``AnnData`` object with counts from spatial data
+    pipeline_output : float, optional
+        Boolean for whether to use the 
+    Returns
+    -------
+    density : float
+       Cell density (cells/um)
+    """   
+    hull = ConvexHull(np.array(adata_sp.uns['spots'].loc[:,['x','y']]))
+    area=hull.area#*10e6
+    return area

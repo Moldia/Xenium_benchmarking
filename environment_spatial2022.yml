@@ -49,6 +49,7 @@ dependencies:
   - morphops
   - napari
   - starfish
+  - imagecodecs
   - glib
   - libvips
   - libpq
