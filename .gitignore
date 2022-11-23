@@ -1,0 +1,5 @@
+# Files for Git to ignore
+
+.DS_Store
+**/data
+*.rds
