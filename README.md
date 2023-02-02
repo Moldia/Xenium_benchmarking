@@ -11,7 +11,9 @@ Xenium is a new spatial transcriptomics product commercialized by 10X Genomics c
 ***
 
 ## Datasets
-
+The Xenium datasets used in this analysis were provided by 10X Genomics. 
+The three mouse brain coronal sections (“ms brain multisection”) are publically available datasets and can be downloaded at from the 10X website (https://www.10xgenomics.com/xenium-preview-data , https://www.10xgenomics.com/resources/datasets). 
+The mouse brain full coronal and half coronal sections (named as “ms brain coronal” and “ms brain ROI” in Figure 1B), as well as the human breast sections are available upon request to 10X Genomics.
 
 ***
 
@@ -32,3 +34,4 @@ Navigate to the folder:
 And install using pip:
 
 ```pip install -e . ```
+
