@@ -2,8 +2,7 @@
 
 This is a public repository for the following study available here:
 
-Salas et al. **Deciphering tissue, inter- and intra-cellular transcriptional 
-diversity with Xenium** (bioRxiv), 2022.
+Marco Salas et al. **Evaluating spatial gene expression heterogeneity in Xenium In Situ data** (bioRxiv), 2023.
 
 **Abstract**
 
