@@ -2,7 +2,7 @@
 
 This is a public repository for the following study available here:
 
-Marco Salas et al. **Evaluating spatial gene expression heterogeneity in Xenium In Situ data** (bioRxiv), 2023.
+Marco Salas et al. **Optimizing Xenium In Situ data utility by quality assessment and best practice analysis workflows** (bioRxiv), 2023.
 
 **Abstract**
 
