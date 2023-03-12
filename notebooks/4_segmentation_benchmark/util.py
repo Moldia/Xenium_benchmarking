@@ -116,3 +116,102 @@ def generate_adata(
     adata.var['n_cells']= np.sum(adata.layers['raw_counts']>0, axis = 0)
 
     return adata
+
+
+
+def normalize_by_area(
+    adata: AnnData,
+    area: Optional[str] = 'area',
+    inplace: Optional[bool] = True
+) -> Optional[np.ndarray]:
+    """Normalize counts by area of cells
+    Parameters
+    ----------
+    adata : AnnData
+        The annotated data matrix of shape `n_obs` x `n_vars`.
+        Rows correspond to cells and columns to genes.
+    area : Optional[str], optional
+        Name of the field in `adata.obs` where the area is
+        stored, by default 'area'
+    inplace : Optional[bool], optional
+        If ``True``, update ``adata`` with results. Otherwise, return results, by default True
+    Returns
+    -------
+    np.ndarray
+        If ``inplace=True``, ``adata.X`` is updated with the normalized values. 
+        Otherwise, returns normalized numpy array
+    """
+    x = adata.X / adata.obs[area].to_numpy()[:,None]
+    
+    if(not inplace):
+        return x
+    adata.layers['raw'] = adata.X.copy()
+    adata.layers['norm'] = x
+    adata.layers['lognorm'] = adata.layers['norm'].copy()
+    sc.pp.log1p(adata, layer='lognorm')
+  
+    return adata
+
+
+def calculate_alpha_area(
+    adata: AnnData,
+    alpha: float = 0
+) -> ndarray:
+    """Calculate and store the alpha shape area of the cell given a set of points (genes). 
+    Uses the Alpha Shape Toolboox: https://alphashape.readthedocs.io/en/latest/readme.html 
+    Parameters
+    ----------
+    adata : AnnData
+        AnnData object with cells as `obs` and genes as `var`, and spots as `adata.uns['spots']`
+    alpha : float, optional
+        The alpha parameter a, used to calculate the alpha shape, by default 0. If -1, optimal alpha 
+        parameter will be calculated.
+    Returns
+    -------
+    ndarray
+        Returns the area vector stored in `adata.obs['alpha_area']` as a numpy array
+    """    
+
+    import alphashape
+    from descartes import PolygonPatch
+    import shapely
+    import json
+    
+    #Read assignments
+    spots = adata.uns['spots']
+
+    # Calculate alpha shape
+    # If there are <3 molecules for a cell, use the mean area
+    area_vec = np.zeros([adata.n_obs])
+    shape_vec = []
+    for i in range(adata.n_obs):
+        dots = pd.concat(
+            [spots[spots['cell'] == adata.obs['cell_id'][i]].x,
+            spots[spots['cell'] == adata.obs['cell_id'][i]].y],
+            axis=1
+        )
+        pts = list(dots.itertuples(index=False, name=None))
+        #If alpha is negative, find optimal alpha, else use parameter/convex hull
+        if alpha < 0 and len(pts) > 3:
+            opt_alpha = alphashape.optimizealpha(pts, max_iterations=100, lower = 0, upper = 10, silent=False)
+            alpha_shape = alphashape.alphashape(pts, opt_alpha)
+        elif alpha < 0:
+            alpha_shape = alphashape.alphashape(pts,0)
+        else:    
+            alpha_shape = alphashape.alphashape(pts,alpha)
+        
+        shape_vec.append(json.dumps(shapely.geometry.mapping(alpha_shape)))
+        #If possible, take area of alpha shape
+        if(len(pts) > 3):
+            area_vec[i] = alpha_shape.area
+        else:
+            area_vec[i] = np.nan
+    
+    #Find mean cell area and fill in NaN and very small values
+    mean_area = np.nanmean(area_vec)
+    area_vec[np.isnan(area_vec)] = mean_area
+    area_vec[np.where(area_vec < 1)] = mean_area
+
+    adata.obs['alpha_area'] = area_vec
+    adata.obs['alpha_shape'] = shape_vec
+    return area_vec

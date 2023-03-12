@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from util import TODO
+from util import generate_adata, normalize_by_area, calculate_alpha_area
 import scanpy as sc
 import pandas as pd
 import numpy as np
@@ -75,9 +75,25 @@ if __name__ == '__main__':
                 break
             method_list.pop()   
     
+    #If none found, use alpha area
+    if 'area' not in adata.obs:
+        alpha = True        
+    
+    # Calculate area based on alpha shape from molecules for each shape
+    if alpha and (normalize_by == 'area' or find_area):
+        calculate_alpha_area(
+            adata=adata,
+            alpha=hyperparams['alpha']
+        )
+        if 'area' in adata.obs and max_area:
+            adata.obs['area'] = np.maximum(adata.obs['alpha_area'], adata.obs['area'])
+    
+    if 'area' not in adata.obs and 'alpha_area' in adata.obs:
+        adata.obs['area'] = adata.obs['alpha_area']    
+    
     #Normalize by area
     if(normalize_by == 'area'):
-        tx.preprocessing.normalize_by_area(adata)
+        normalize_by_area(adata)
 
     #Save AnnData object
     adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")
