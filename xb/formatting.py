@@ -1,0 +1,417 @@
+import numpy as np
+import pandas as pd
+import scanpy as sc
+import seaborn as sns
+import matplotlib.pyplot as plt
+import gzip
+import shutil
+import os.path
+from scipy.io import mmread
+import tifffile as tf
+from scipy.spatial import ConvexHull, convex_hull_plot_2d
+from anndata import AnnData
+import json
+
+
+
+def format_xenium_adata(path,tag,output_path):
+    #decompress
+    if os.path.isfile(path+'/transcripts.csv')==False:
+        with gzip.open(path+'/transcripts.csv.gz', 'rb') as f_in:
+            with open(path+'/transcripts.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/barcodes.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/barcodes.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/barcodes.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/features.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/features.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/features.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/matrix.mtx')==False:
+        with gzip.open(path+'/cell_feature_matrix/matrix.mtx.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/matrix.mtx', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cells.csv')==False:
+        with gzip.open(path+'/cells.csv.gz', 'rb') as f_in:
+            with open(path+'/cells.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    a = mmread(path+'/cell_feature_matrix/matrix.mtx')
+    ad=a.todense()
+    cell_info=pd.read_csv(path+r"/cells.csv")
+    features=pd.read_csv(path+'/cell_feature_matrix/features.tsv',sep='\t',header=None,index_col=0)
+    barcodes=pd.read_csv(path+'/cell_feature_matrix/barcodes.tsv',header=None,index_col=0)
+    adata=sc.AnnData(ad.transpose(),obs=cell_info,var=features)
+    adata.var.index.name='index'
+    adata.var.columns=['gene_id','reason_of_inclusion']
+    panel_info=pd.read_csv(path+'/panel.tsv',sep='\t')
+    adata.obsm['spatial']=np.array(adata.obs.loc[:,['x_centroid','y_centroid']])
+    try:
+        panel_info['Gene']
+    except:
+        panel_info['Gene']=panel_info['Name']
+    dict_annotation=dict(zip(panel_info['Gene'],panel_info['Annotation']))
+    dict_ENSEMBL=dict(zip(panel_info['Gene'],panel_info['Ensembl ID']))
+    adata.var['Annotation']=adata.var.index.map(dict_annotation)
+    adata.var['Ensembl ID']=adata.var.index.map(dict_ENSEMBL)
+    adata.var['in_panel']=adata.var.index.isin(panel_info['Gene'])
+    transcripts=pd.read_csv(path+'/transcripts.csv',index_col=0)
+    if os.path.isfile(path+'/background.tiff')==False:
+        format_background(path)
+    IM=tf.TiffFile(path+'/background.tiff')
+    position1_series = IM.series[0]
+    position1_series.axes
+    position1 = position1_series.asarray()
+    image_downsize_fact=1/(2000/np.max(position1.shape))
+    pos1_resized=np.resize(position1,(position1.shape/image_downsize_fact).astype(int))
+    adata.uns={"spatial":{tag:{"scalefactors":{"tissue_um_to_pixel":1/0.2125,"tissue_hires_scalef":1/(0.2125*image_downsize_fact)},"images":{"hires":pos1_resized}}}} 
+    adata.uns['spots']=transcripts
+    try:
+        UMAP=pd.read_csv(path+'/analysis/umap/gene_expression_2_components/projection.csv',index_col=0)
+        adata.obsm['X_umap']=np.array(UMAP)
+        TSNE=pd.read_csv(path+'/analysis/tsne/gene_expression_2_components/projection.csv',index_col=0)
+        adata.obsm['X_tsne']=np.array(TSNE)
+        PCA=pd.read_csv(path+'/analysis/PCA/gene_expression_10_components/projection.csv',index_col=0)
+        adata.obsm['X_pca']=np.array(PCA)
+        clusters=pd.read_csv(path+'/analysis/clustering/gene_expression_graphclust/clusters.csv',index_col=0)
+        adata.obs['graph_clusters']=list(clusters['Cluster'].astype(str))
+        kmeans2=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans2_clusters']=list(kmeans2['Cluster'].astype(str))
+        kmeans3=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_3_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans3_clusters']=list(kmeans3['Cluster'].astype(str))
+        kmeans4=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_4_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans4_clusters']=list(kmeans4['Cluster'].astype(str))
+        kmeans5=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_5_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans5_clusters']=list(kmeans5['Cluster'].astype(str))
+        kmeans6=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_6_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans6_clusters']=list(kmeans6['Cluster'].astype(str))
+        kmeans7=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_7_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans7_clusters']=list(kmeans7['Cluster'].astype(str))
+        kmeans8=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_8_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans8_clusters']=list(kmeans8['Cluster'].astype(str))
+        kmeans9=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_9_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans9_clusters']=list(kmeans9['Cluster'].astype(str))
+        kmeans10=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_10_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans10_clusters']=list(kmeans10['Cluster'].astype(str))
+    except:
+        print('UMAP and clusters_could not be recovered')
+    adata.write(output_path+tag+'.h5ad')
+    return adata
+    
+
+def format_xenium_adata_2023(path,tag,output_path):
+    #decompress
+    if os.path.isfile(path+'/transcripts.csv')==False:
+        with gzip.open(path+'/transcripts.csv.gz', 'rb') as f_in:
+            with open(path+'/transcripts.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/barcodes.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/barcodes.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/barcodes.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/features.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/features.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/features.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/matrix.mtx')==False:
+        with gzip.open(path+'/cell_feature_matrix/matrix.mtx.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/matrix.mtx', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cells.csv')==False:
+        with gzip.open(path+'/cells.csv.gz', 'rb') as f_in:
+            with open(path+'/cells.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    a = mmread(path+'/cell_feature_matrix/matrix.mtx')
+    ad=a.todense()
+    cell_info=pd.read_csv(path+r"/cells.csv")
+    features=pd.read_csv(path+'/cell_feature_matrix/features.tsv',sep='\t',header=None,index_col=0)
+    barcodes=pd.read_csv(path+'/cell_feature_matrix/barcodes.tsv',header=None,index_col=0)
+    adata=sc.AnnData(ad.transpose(),obs=cell_info,var=features)
+    adata.var.index.name='index'
+    adata.var.columns=['gene_id','reason_of_inclusion']
+    # Opening JSON file
+    f = open(path+'/gene_panel.json')
+    # returns JSON object as 
+    # a dictionary
+    data = json.load(f)
+    # Iterating through the json
+    # list
+    geness=[]
+    idss=[]
+    descriptorss=[]
+    for r in range(len(data['payload']['targets'])):
+        geness.append(data['payload']['targets'][r]['type']['data']['name'])
+        try:
+            idss.append(data['payload']['targets'][r]['type']['data']['id'])
+        except:
+            idss.append('newid_'+str(r)) 
+        try:
+            descriptorss.append(data['payload']['targets'][r]['type']['descriptor'])
+        except:
+            descriptorss.append('other')
+    # Closing file
+    f.close()
+
+    dict_inpanel=dict(zip(geness,descriptorss))
+    dict_ENSEMBL=dict(zip(geness,idss))
+    adata.var['Ensembl ID']=adata.var['gene_id'].map(dict_ENSEMBL)
+    adata.var['in_panel']=adata.var['gene_id'].map(dict_inpanel)
+    transcripts=pd.read_csv(path+'/transcripts.csv',index_col=0)
+    adata.uns['spots']=transcripts
+    try:
+        UMAP=pd.read_csv(path+'/analysis/umap/gene_expression_2_components/projection.csv',index_col=0)
+        adata.obsm['X_umap']=np.array(UMAP)
+        TSNE=pd.read_csv(path+'/analysis/tsne/gene_expression_2_components/projection.csv',index_col=0)
+        adata.obsm['X_tsne']=np.array(TSNE)
+        PCA=pd.read_csv(path+'/analysis/PCA/gene_expression_10_components/projection.csv',index_col=0)
+        adata.obsm['X_pca']=np.array(PCA)
+        clusters=pd.read_csv(path+'/analysis/clustering/gene_expression_graphclust/clusters.csv',index_col=0)
+        adata.obs['graph_clusters']=list(clusters['Cluster'].astype(str))
+        kmeans2=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans2_clusters']=list(kmeans2['Cluster'].astype(str))
+        kmeans3=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans3_clusters']=list(kmeans3['Cluster'].astype(str))
+        kmeans4=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans4_clusters']=list(kmeans4['Cluster'].astype(str))
+        kmeans5=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans5_clusters']=list(kmeans5['Cluster'].astype(str))
+        kmeans6=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans6_clusters']=list(kmeans6['Cluster'].astype(str))
+        kmeans7=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans7_clusters']=list(kmeans7['Cluster'].astype(str))
+        kmeans8=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans8_clusters']=list(kmeans8['Cluster'].astype(str))
+        kmeans9=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans9_clusters']=list(kmeans9['Cluster'].astype(str))
+        kmeans10=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans10_clusters']=list(kmeans10['Cluster'].astype(str))
+    except:
+        print('UMAP and clusters_could not be recovered')
+    adata.X=sp.sparse.csr_matrix(adata.X)
+    adata.write(output_path+tag+'.h5ad')
+    return adata
+
+
+def format_xenium_adata_mid_2023(path,tag,output_path):
+    if os.path.isdir(path+'/cell_feature_matrix')==False:
+    # Path of the file
+        extr=path+'/cell_feature_matrix.tar.gz'
+        # Target directory
+        extract_dir = path
+        # Unzip the file 
+        shutil.unpack_archive(extr, extract_dir)
+        print('First decompressing done')
+    
+    if os.path.isfile(path+'/transcripts.csv')==False:
+        with gzip.open(path+'/transcripts.csv.gz', 'rb') as f_in:
+            with open(path+'/transcripts.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/barcodes.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/barcodes.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/barcodes.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/features.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/features.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/features.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/matrix.mtx')==False:
+        with gzip.open(path+'/cell_feature_matrix/matrix.mtx.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/matrix.mtx', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cells.csv')==False:
+        with gzip.open(path+'/cells.csv.gz', 'rb') as f_in:
+            with open(path+'/cells.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    a = mmread(path+'/cell_feature_matrix/matrix.mtx')
+    ad=a.todense()
+    cell_info=pd.read_csv(path+r"/cells.csv")
+    features=pd.read_csv(path+'/cell_feature_matrix/features.tsv',sep='\t',header=None,index_col=0)
+    barcodes=pd.read_csv(path+'/cell_feature_matrix/barcodes.tsv',header=None,index_col=0)
+    adata=sc.AnnData(ad.transpose(),obs=cell_info,var=features)
+    adata.var.index.name='index'
+    adata.var.columns=['gene_id','reason_of_inclusion']
+    f = open(path+'/gene_panel.json') 
+    data = json.load(f)
+    geness=[]
+    idss=[]
+    descriptorss=[]
+    for r in range(len(data['payload']['targets'])):
+        geness.append(data['payload']['targets'][r]['type']['data']['name'])
+        try:
+            idss.append(data['payload']['targets'][r]['type']['data']['id'])
+        except:
+            idss.append('newid_'+str(r)) 
+        try:
+            descriptorss.append(data['payload']['targets'][r]['type']['descriptor'])
+        except:
+            descriptorss.append('other')
+    # Closing file
+    f.close()
+
+    dict_inpanel=dict(zip(geness,descriptorss))
+    dict_ENSEMBL=dict(zip(geness,idss))
+    adata.var['Ensembl ID']=adata.var['gene_id'].map(dict_ENSEMBL)
+    adata.var['in_panel']=adata.var['gene_id'].map(dict_inpanel)
+    transcripts=pd.read_csv(path+'/transcripts.csv',index_col=0)
+    adata.uns['spots']=transcripts
+    if os.path.isdir(path+'/analysis')==False:
+    # Path of the file
+        extr=path+'/analysis.tar.gz'
+        # Target directory
+        extract_dir = path
+        # Unzip the file 
+        shutil.unpack_archive(extr, extract_dir)
+        print('Analysis files decompressed')
+    try:
+        UMAP=pd.read_csv(path+'/analysis/umap/gene_expression_2_components/projection.csv',index_col=0)
+        adata.obsm['X_umap']=np.array(UMAP)
+        TSNE=pd.read_csv(path+'/analysis/tsne/gene_expression_2_components/projection.csv',index_col=0)
+        adata.obsm['X_tsne']=np.array(TSNE)
+        PCA=pd.read_csv(path+'/analysis/PCA/gene_expression_10_components/projection.csv',index_col=0)
+        adata.obsm['X_pca']=np.array(PCA)
+        clusters=pd.read_csv(path+'/analysis/clustering/gene_expression_graphclust/clusters.csv',index_col=0)
+        adata.obs['graph_clusters']=list(clusters['Cluster'].astype(str))
+        kmeans2=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans2_clusters']=list(kmeans2['Cluster'].astype(str))
+        kmeans3=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans3_clusters']=list(kmeans3['Cluster'].astype(str))
+        kmeans4=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans4_clusters']=list(kmeans4['Cluster'].astype(str))
+        kmeans5=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans5_clusters']=list(kmeans5['Cluster'].astype(str))
+        kmeans6=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans6_clusters']=list(kmeans6['Cluster'].astype(str))
+        kmeans7=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans7_clusters']=list(kmeans7['Cluster'].astype(str))
+        kmeans8=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans8_clusters']=list(kmeans8['Cluster'].astype(str))
+        kmeans9=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans9_clusters']=list(kmeans9['Cluster'].astype(str))
+        kmeans10=pd.read_csv(path+'/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv',index_col=0)
+        adata.obs['kmeans10_clusters']=list(kmeans10['Cluster'].astype(str))
+    except:
+        print('UMAP and clusters_could not be recovered')
+    adata.X=sp.sparse.csr_matrix(adata.X)
+    adata.uns['spots']=adata.uns['spots'].fillna(0)
+    adata.uns['spots']['fov_name']=adata.uns['spots']['fov_name'].astype(str)
+    adata.write(output_path+tag+'.h5ad')
+    return adata
+
+
+def format_background(path):
+    IM=tf.TiffFile(path+'/morphology_mip.ome.tif')
+    position1_series = IM.series[0]
+    position1_series.axes
+    position1 = position1_series.asarray()
+    tf.imwrite(path+'/background.tiff',position1)
+    
+    
+def keep_nuclei(adata1,overlaps_nucleus=1):
+    subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
+    ct1=pd.crosstab(subset1['cell_id'],subset1['feature_name'])
+    adataobs=adata1.obs.loc[adata1.obs['cell_id'].isin(ct1.index),:]
+    ct1=ct1.loc[:,adata1.var.index]
+    adataobs.index=adataobs['cell_id']
+    adataobs.index.name='ind'
+    ct1=ct1.loc[ct1.index.isin(adataobs['cell_id']),:]
+    adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs,var=adata1.var)
+    return adata1nuc
+    
+def cell_area(adata_sp: AnnData,pipeline_output=True):
+    """Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2"
+    Parameters
+    ----------
+    adata_sp : AnnData
+        annotated ``AnnData`` object with counts from spatial data
+    pipeline_output : float, optional
+        Boolean for whether to use the 
+    Returns
+    -------
+    density : float
+       Cell density (cells/um)
+    """   
+    hull = ConvexHull(np.array(adata_sp.uns['spots'].loc[:,['x','y']]))
+    area=hull.area#*10e6
+    return area
+
+def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
+    if overlaps_nucleus==1:
+        subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
+    if overlaps_nucleus==0:
+        subset1=adata1.uns['spots']
+    subset1=subset1[subset1['qv']>qvmin]
+    ct1=pd.crosstab(subset1['cell_id'],subset1['feature_name'])
+    adataobs=adata1.obs.loc[adata1.obs['cell_id'].isin(ct1.index),:]
+    av=adata1.var.index[adata1.var.index.isin(ct1.columns)]#.isin(adata1.var.index)
+    ct1=ct1.loc[:,av]
+    adataobs.index=adataobs['cell_id']
+    adataobs.index.name='ind'
+    ct1=ct1.loc[ct1.index.isin(adataobs['cell_id']),:]
+    adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs)#,var=adata1.var)
+    return adata1nuc
+
+def generate_random_color_variation(base_color, deviation=0.17):
+    base_rgb = mcolors.hex2color(base_color)
+    h, s, v = mcolors.rgb_to_hsv(base_rgb)
+
+    # Make random adjustments to the hue, saturation, and value
+    h += random.uniform(-deviation, deviation)
+    s = max(0, min(1, s + random.uniform(-deviation, deviation)))
+    v = max(0, min(1, v + random.uniform(-deviation, deviation)))
+
+    # Ensure the values are within the valid HSV range
+    h = h % 1.0
+
+    modified_rgb = mcolors.hsv_to_rgb((h, s, v))
+    modified_hex_color = mcolors.to_hex(modified_rgb)
+
+    return modified_hex_color
+
+def format_data_neighs(adata,sname,condit,neighs=10):
+    adata.obsm["spatial"]=np.array([adata.obs.X,adata.obs.Y]).transpose().astype('float64')
+    adata.obs['sample']=sname
+    adata_copy_int=adata
+    sq.gr.spatial_neighbors(adata_copy_int,n_neighs=neighs)
+    result=np.zeros([adata.shape[0],len(adata_copy_int.obs[sname].unique())])
+    n=0
+    tr=adata_copy_int.obsp['spatial_distances'].transpose()
+    tr2=tr>0
+    from tqdm import tqdm
+    for g in tqdm(adata_copy_int.obs[sname].unique()):
+        epv=adata_copy_int.obs[sname]==g*1
+        opv=list(epv*1)
+        result[:,n]=tr2.dot(opv)
+        n=n+1
+    expmat=pd.DataFrame(result,columns=adata_copy_int.obs[sname].unique())
+    adata1=sc.AnnData(expmat,obs=adata.obs)
+    adata1.obs['sample']=condit
+    adata1.obs['condition']=condit
+    return adata1
+
+def format_data_neighs_colapse(adata,sname,condit,neighs=10):
+    adata.obsm["spatial"]=np.array([adata.obs.X,adata.obs.Y]).transpose().astype('float64')
+    adata_copy_int=adata
+    sq.gr.spatial_neighbors(adata_copy_int,n_neighs=neighs)
+    result=np.zeros([adata.shape[0],adata.shape[1]])
+    n=0
+    tr=adata_copy_int.obsp['spatial_distances'].transpose()
+    tr2=tr>0
+    exp=adata_copy_int.to_df()
+    from tqdm import tqdm
+    #tdd=tr2.todense()
+    for i in tqdm(range(0,adata_copy_int.to_df().shape[0])):
+        result[i,:]=np.sum(exp[tr2[i,:].todense().transpose()],axis=0)
+    adata1=sc.AnnData(result,obs=adata.obs,var=adata.var)
+    return adata1
