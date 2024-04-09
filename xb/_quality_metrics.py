@@ -116,7 +116,7 @@ def percentile_5th_reads_cells(adata_sp: AnnData,pipeline_output=True):
     median_cells : float
        Median_number_of_reads_x_cell
     """   
-    pctile5=np.percentile(np.sum(adata_sp.layers['raw'],axis=1),5)
+    pctile5=np.percentile(np.squeeze(np.asarray(np.sum(adata.layers['raw'],axis=1))),5)
     return pctile5
 
 def mean_genes_cells(adata_sp: AnnData,pipeline_output=True):
@@ -199,6 +199,6 @@ def percentile_95th_reads_cells(adata_sp: AnnData,pipeline_output=True):
     median_cells : float
        Median_number_of_reads_x_cell
     """   
-    pctile95=np.percentile(np.sum(adata_sp.layers['raw'],axis=1),95)
+    pctile95=np.percentile(np.squeeze(np.asarray(np.sum(adata.layers['raw'],axis=1))),95)
     return pctile95
     
