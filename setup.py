@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(
-name="my_module",
+name="xb",
     version="1.2.0",
     description="Package to perform xenium benchkmarking",
     author="Sergio Marco Salas",
