@@ -12,11 +12,11 @@ The Xenium In Situ platform is a new spatial transcriptomics product commerciali
 
 ## Datasets
 The Xenium datasets used in though this study combined datasets provided by 10X Genomics, datasets published elsewhere and datasets generated specifically for this project. The original files can be found in:
-- *10X Genomics datasets*: https://www.10xgenomics.com/datasets [03.05.2024]
-- 
-- 
-The three mouse brain coronal sections (“ms brain multisection”) are publically available datasets and can be downloaded at from the 10X website (https://www.10xgenomics.com/xenium-preview-data , https://www.10xgenomics.com/resources/datasets). 
-The mouse brain full coronal and half coronal sections (named as “ms brain coronal” and “ms brain ROI” in Figure 1B), as well as the human breast sections are available upon request to 10X Genomics.
+- **10X Genomics datasets**: Most of the datasets used in this study were publically available in https://www.10xgenomics.com/datasets [03.05.2024]
+- **Published datasets**: the spinal chord datasets used were originally published in Kukanja, Langseth et al. (Cell, 2024) (  https://doi.org/10.1016/j.cell.2024.02.030)
+- **Freshly generated datasets**: four mouse brain sections, labelled as "hm" through the study, were profiled for this analysis. Their original data can be downloaded from: https://doi.org/10.5281/zenodo.10566172
+ 
+To facilitate the reproducibility of our analysis, we also provided already pre-formated AnnData files for each dataset used in the study, available at [ADD ZENODO REPO UPON PUBLICAION]
 
 ***
 
