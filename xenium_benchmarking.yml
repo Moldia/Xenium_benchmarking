@@ -182,7 +182,6 @@ dependencies:
       - trimesh==4.0.0
       - trio==0.22.2
       - trio-websocket==0.10.3
-      - txsim==0.1.0
       - typing==3.7.4.3
       - typing-extensions==4.7.1
       - umap-learn==0.5.3
