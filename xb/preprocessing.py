@@ -11,6 +11,7 @@ import tifffile as tf
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 from anndata import AnnData
 import json
+import scipy as sp
 
 def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc=0,nuc=1,scale=False,hvg=False,default=False,total_clusters=30,norm=True,lg=True):
 #    print(adata.shape)

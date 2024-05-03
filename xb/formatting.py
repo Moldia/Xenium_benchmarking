@@ -11,7 +11,7 @@ import tifffile as tf
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 from anndata import AnnData
 import json
-
+import scipy as sp
 
 
 def format_xenium_adata(path,tag,output_path):
@@ -99,6 +99,7 @@ def format_xenium_adata(path,tag,output_path):
         adata.obs['kmeans10_clusters']=list(kmeans10['Cluster'].astype(str))
     except:
         print('UMAP and clusters_could not be recovered')
+    adata.obs['cell_id']=adata.obs['cell_id'].astype(str)
     adata.write(output_path+tag+'.h5ad')
     return adata
     
@@ -399,7 +400,7 @@ def format_data_neighs(adata,sname,condit,neighs=10):
         n=n+1
     expmat=pd.DataFrame(result,columns=adata_copy_int.obs[sname].unique())
     adata1=sc.AnnData(expmat,obs=adata.obs)
-    adata1.obs['sample']=condit
+    #adata1.obs['sample']=condit
     adata1.obs['condition']=condit
     return adata1
 
@@ -549,7 +550,7 @@ def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_n
     adata.var=alladata[0].var
     adata.obs['total_counts']=np.sum(adata.X,axis=1)
     adata.obs['expressed_genes']=np.sum(adata.X>0,axis=1)
-    adata.obs['unique_cell_id']=adata.obs['cell_id']+'_'+adata.obs['sample']
+    adata.obs['unique_cell_id']=adata.obs['cell_id'].astype(str)+'_'+adata.obs['sample'].astype(str)
     adata.var['ENSMBL_ID']=adata.var.index
     adata.var.index=adata.var['gene_id']
     if save==True:
