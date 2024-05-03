@@ -515,7 +515,7 @@ def format_xenium_adata(path,tag,output_path,use_parquet=True,save=True):
         adata.write(output_path+tag+'_original.h5ad')
     return adata
 
-def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20,save=True):
+def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20,save=True,output_path=''):
     if max_nucleus_distance==0:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
     if max_nucleus_distance>0:
@@ -543,7 +543,7 @@ def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_n
         print(f'Formatting {tag}')
         adata=format_xenium_adata(f,tag,output_path,use_parquet=use_parquet,save=save)
         print('Filter reads')
-        adata_f1=keep_nuclei_and_quality(adata,tag=tag,max_nucleus_distance=max_nucleus_distance,min_quality=min_quality,save=save)
+        adata_f1=keep_nuclei_and_quality(adata,tag=tag,max_nucleus_distance=max_nucleus_distance,min_quality=min_quality,save=save,output_path=output_path)
         #xf.format_background(f)
         alladata.append(adata_f1)
     adata=sc.concat(alladata,join='outer')
