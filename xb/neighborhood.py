@@ -14,7 +14,7 @@ import json
 import squidpy as sq
 
 
-def nhood_squidpy(adata1,sample_key='sample',radius=50.0,cluster_key='leiden',save=True,plot_path='./'):
+def nhood_squidpy(adata,sample_key='sample',radius=50.0,cluster_key='leiden',save=True,plot_path='./',cmap='inferno',vmax=None,vmin=None):
     anndata_list=[]
     plt.style.use('default')
     for sample in adata.obs[sample_key].unique():
@@ -23,7 +23,7 @@ def nhood_squidpy(adata1,sample_key='sample',radius=50.0,cluster_key='leiden',sa
         anndata_list.append(adata_copy_int) 
     adata1=sc.concat(anndata_list,join='outer',pairwise=True) 
     sq.gr.nhood_enrichment(adata1, cluster_key=cluster_key)
-    sq.pl.nhood_enrichment(adata1, cluster_key=cluster_key, method="single", cmap="inferno", vmin=-50, vmax=100,show=False)
+    sq.pl.nhood_enrichment(adata1, cluster_key=cluster_key, method="single", cmap=cmap, vmin=vmin, vmax=vmax,show=False)
     if save==True:
         plt.savefig(plot_path+'neighborhood_enrichment_'+str(cluster_key)+'_'+str(radius)+'.pdf')
     return adata1

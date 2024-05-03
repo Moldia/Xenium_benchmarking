@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats as st
 from sklearn.neighbors import NearestNeighbors
+import matplotlib.pyplot as plt
 
 def SpaGE(Spatial_data,RNA_data,n_pv,genes_to_predict=None):
     """
@@ -418,13 +419,13 @@ def leave_one_out_validation(adata,sc_adata,genes:list):
         allimp.append(Imp_Genes)
     return pd.concat(allimp)
 
-def gene_imputation(adata,sc_adata,genes:list):
+def gene_imputation(adata,sc_adata,new_genes:list):
     '''Function to impute genes using SpaGe'''
     RNA_data=sc_adata.to_df()
     RNA_meta=sc_adata.obs
     spatial_data=adata.to_df()
     spatial_meta=adata.obs
-    Correlations = pd.Series(index = genes)
+    Correlations = pd.Series(index = new_genes)
     plt.style.use('dark_background')
     spatialcoords=pd.DataFrame(adata.obsm['spatial'])
     Imp_New_Genes = SpaGE(spatial_data,RNA_data,n_pv=30,genes_to_predict = new_genes)
