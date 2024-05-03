@@ -1,9 +1,9 @@
 Metadata-Version: 2.1
 Name: xb
 Version: 1.2.0
-Summary: A description of your module
-Author: Your Name
-Author-email: your@email.com
+Summary: Package to perform xenium benchkmarking
+Author: Sergio Marco Salas
+Author-email: sergiomarco.salas@scilifelab.se
 License: UNKNOWN
 Platform: UNKNOWN
 Description-Content-Type: text/markdown

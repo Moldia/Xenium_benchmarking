@@ -83,3 +83,9 @@ def plot_cell_counts(adata,plot_path:str,save=True,clustering_params='clustering
     ax[1].axvline(x=clustering_params['min_genes_x_cell'], color = '#786e8a', label = 'axvline - full height')
     if save==True:
         plt.savefig(plot_path+'cell_counts_histogram.png',dpi=200)
+        
+        
+def plot_domains(adata,groupby='nbd_domain'):
+    for s in adata.obs['sample'].unique():
+        adatasub=adata[adata.obs['sample']==s]
+        sc.pl.spatial(adatasub,color=groupby,spot_size=40)

@@ -1,3 +1,18 @@
+import numpy as np
+import pandas as pd
+import scanpy as sc
+import seaborn as sns
+import matplotlib.pyplot as plt
+import gzip
+import shutil
+import os.path
+from scipy.io import mmread
+import tifffile as tf
+from scipy.spatial import ConvexHull, convex_hull_plot_2d
+from anndata import AnnData
+import json
+from sklearn.metrics import mutual_info_score
+from sklearn.metrics import fowlkes_mallows_score
 import warnings
 warnings.filterwarnings("ignore") 
 import random
@@ -5,6 +20,7 @@ import scipy.sparse as sparse
 from scipy.sparse import csr_matrix, issparse
 from Banksy_py.banksy.initialize_banksy import initialize_banksy
 from Banksy_py.banksy.run_banksy import run_banksy_multiparam
+import squidpy as sq
 
 
 
@@ -31,11 +47,10 @@ def define_palette(n_colors=50):
     for i in range(n):
         colorlist.append('#%06X' % randint(0, 0xFFFFFF))
     return colorlist
-
-def domains_by_banksy(adata,plot_path:str,banksy_params:dict):
+def domains_by_banksy(adata,plot_path:str,banksy_params:dict,save=True):
     adata=adapt_banksy_for_multisample(adata)
     coord_keys = ('Xres', 'Yres','spatial')
-    prev_clusters=[e for e in adata.obs.columns if clustering_params['clustering_alg'] in e]
+    prev_clusters=[e for e in adata.obs.columns if 'leiden' in e]
     if len(prev_clusters)>0:
         annotation_key=prev_clusters[0]
     else:
@@ -57,7 +72,7 @@ def domains_by_banksy(adata,plot_path:str,banksy_params:dict):
         adata,
         banksy_dict,
         banksy_params['lambda_list'], banksy_params['resolutions'],
-        color_list = define_palette(n_colors=100), max_m = max_m, filepath = plot_path,
+        color_list = define_palette(n_colors=100), max_m = banksy_params['max_m'], filepath = plot_path,
         key = coord_keys, pca_dims = banksy_params['pca_dims'],
         annotation_key = annotation_key, max_labels = None,
         cluster_algorithm = banksy_params['cluster_algorithm'], match_labels = False, savefig = save, add_nonspatial = False,
@@ -166,3 +181,35 @@ def compare_domains(adata,domain_keys:list,save=True,plot_path='./'):
                 plt.savefig(plot_path+'map_all_domains_'+str(s)+'.pdf')
     
     return ARI
+
+def domains_by_nbd(adata,hyperparameters_nbd:dict):
+    sample_key='sample'  # sample is considered the "sample_key"
+    anndata_list=[]
+    for sample in adata.obs[sample_key].unique():
+        adata_copy_int = adata[adata.obs[sample_key]==sample]
+        adataneigh2=format_data_neighs(adata,hyperparameters_nbd['key'],sample_key,neighs=hyperparameters_nbd['neighbors'])
+        anndata_list.append(adataneigh2)
+    adataneigh=sc.concat(anndata_list)
+    adataneigh.X=np.nan_to_num(adataneigh.X)
+    adataneigh=adataneigh[adataneigh.obs['total_counts']>3]
+    adataneigh.raw=adataneigh
+    sc.pp.neighbors(adataneigh, n_neighbors=20,n_pcs=0)
+    sc.tl.umap(adataneigh,min_dist=0.1)
+    if hyperparameters_nbd['clustering_algorithm']=='leiden':
+        sc.tl.leiden(adataneigh,resolution=hyperparameters_nbd['resolution'],key_added='nbd_domain')
+    if hyperparameters_nbd['clustering_algorithm']=='louvain':
+        sc.tl.louvain(adataneigh,resolution=hyperparameters_nbd['resolution'],key_added='nbd_domain')    
+    if hyperparameters_nbd['clustering_algorithm']=='leiden':
+        sc.tl.leiden(adataneigh,resolution=hyperparameters_nbd['resolution'],key_added='nbd_domain')
+    if hyperparameters_nbd['clustering_algorithm']=='louvain':
+        sc.tl.louvain(adataneigh,resolution=hyperparameters_nbd['resolution'],key_added='nbd_domain')    
+    id2domain=dict(zip(adataneigh.obs['unique_cell_id'],adataneigh.obs['nbd_domain']))
+    adata.obs['nbd_domain']=adata.obs['unique_cell_id'].map(id2domain).astype(str)
+    return adata,adataneigh
+
+def spatial_plot(adata,groupby='nbd_domain',save=False,plot_path='./'):
+    for s in adata.obs['sample'].unique():
+            adatasub=adata[adata.obs['sample']==s]
+            sc.pl.spatial(adatasub,color=groupby,spot_size=40,vmax='p99',show=False)
+            if save==True:
+                plt.savefig(plot_path+'spatial_map_'+str(s)+'_by_'+str(groupby)+'.pdf')
