@@ -69,3 +69,61 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
     else:
         return adata
     
+    
+         
+def preprocess_adata(adata,save=True,clustering_params='clustering_params',output_path='output_path'):
+    import matplotlib
+    sc.set_figure_params(scanpy=True, dpi=150,figsize=(10,10))
+    plt.rcParams['figure.facecolor'] = 'white'
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    plot_path=output_path+r'/figures/'
+    if not os.path.exists(plot_path):
+        os.mkdir(plot_path)
+    plot_cell_counts(adata,plot_path=plot_path,clustering_params=clustering_params)
+    sc.pp.filter_cells(adata,min_counts=clustering_params['min_counts_x_cell'])
+    sc.pp.filter_cells(adata,min_genes=clustering_params['min_genes_x_cell'])
+    adata.raw=adata
+    adata.layers['raw']=adata.X
+    sc.pp.normalize_total(adata, target_sum=clustering_params['normalization_target_sum'])
+    sc.pp.log1p(adata)
+    plt.rcParams['figure.facecolor'] = 'white'
+    sc.pp.highly_variable_genes(adata, min_mean=0.3, max_mean=7, min_disp=-0.5)
+    sc.pl.highly_variable_genes(adata,show=False)
+    plt.savefig(plot_path+'hvg.pdf')
+    if clustering_params['scale']==True:
+        sc.pp.scale(adata)
+    sc.tl.pca(adata, svd_solver='arpack')
+    plt.rcParams['figure.facecolor'] = 'white'
+    sc.pl.pca_variance_ratio(adata, log=True,show=False)
+    plt.savefig(plot_path+'pca_variance_ratio.pdf')
+    sc.pp.neighbors(adata, n_neighbors=clustering_params['n_neighbors'], n_pcs=clustering_params['n_pcs'])
+    if clustering_params['clustering_alg']=='louvain':
+        for r in clustering_params['resolutions']:
+            sc.tl.louvain(adata,resolution=r,key_added=clustering_params['clustering_alg']+'_'+str(r))
+    if clustering_params['clustering_alg']=='leiden':
+        for r in clustering_params['resolutions']:
+            sc.tl.leiden(adata,resolution=r,key_added=clustering_params['clustering_alg']+'_'+str(r))
+    sc.tl.umap(adata,min_dist=clustering_params['umap_min_dist'])
+    for r in clustering_params['resolutions']:
+        plt.rcParams['figure.facecolor'] = 'white'
+        sc.pl.umap(adata,color=[clustering_params['clustering_alg']+'_'+str(r)],size=1,legend_fontsize=8,legend_fontoutline=1,show=False,frameon=False)
+        plt.savefig(plot_path+'umap_'+str(r)+'.pdf')   
+    sc.pl.umap(adata,color=['sample'],size=1,legend_fontsize=8,legend_fontoutline=1,show=False,frameon=False)
+    plt.savefig(plot_path+'umap_sample.pdf')
+    for r in clustering_params['resolutions']:
+        plt.rcParams['figure.facecolor'] = 'white'
+        sc.tl.rank_genes_groups(adata, groupby=clustering_params['clustering_alg']+'_'+str(r), method='wilcoxon',key_added=clustering_params['clustering_alg']+'_'+str(r))
+        sc.tl.dendrogram(adata,groupby=clustering_params['clustering_alg']+'_'+str(r))
+        sc.pl.rank_genes_groups_dotplot(adata, n_genes=3, swap_axes=True,show=False,key=clustering_params['clustering_alg']+'_'+str(r))
+        plt.savefig(plot_path+'deg_dotplot_'+str(r)+'.pdf')
+        sc.pl.rank_genes_groups(adata,n_genes=5,show=False,key=clustering_params['clustering_alg']+'_'+str(r),fontsize=15)
+        plt.savefig(plot_path+'deg_'+str(r)+'.pdf')
+    for s in adata.obs['sample'].unique():
+        adatasub=adata[adata.obs['sample']==s]
+        for r in clustering_params['resolutions']:
+            sc.pl.spatial(adatasub,color=clustering_params['clustering_alg']+'_'+str(r),spot_size=40)
+            plt.savefig(plot_path+'spatial_map_'+str(s)+'_'+str(r)+'.pdf')
+    if save==True:
+        adata.write(output_path+'combined_processed.h5ad')
+    return adata

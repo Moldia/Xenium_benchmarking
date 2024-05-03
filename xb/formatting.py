@@ -379,9 +379,12 @@ def generate_random_color_variation(base_color, deviation=0.17):
 
     return modified_hex_color
 
+
 def format_data_neighs(adata,sname,condit,neighs=10):
-    adata.obsm["spatial"]=np.array([adata.obs.X,adata.obs.Y]).transpose().astype('float64')
-    adata.obs['sample']=sname
+    try:
+        adata.obsm['spatial']
+    except:
+        adata.obsm["spatial"]=np.array([adata.obs.X,adata.obs.Y]).transpose().astype('float64')
     adata_copy_int=adata
     sq.gr.spatial_neighbors(adata_copy_int,n_neighs=neighs)
     result=np.zeros([adata.shape[0],len(adata_copy_int.obs[sname].unique())])
@@ -415,3 +418,140 @@ def format_data_neighs_colapse(adata,sname,condit,neighs=10):
         result[i,:]=np.sum(exp[tr2[i,:].todense().transpose()],axis=0)
     adata1=sc.AnnData(result,obs=adata.obs,var=adata.var)
     return adata1
+
+
+
+def format_xenium_adata(path,tag,output_path,use_parquet=True,save=True):
+    #decompress
+
+    if os.path.isfile(path+'/cell_feature_matrix/barcodes.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/barcodes.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/barcodes.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/features.tsv')==False:
+        with gzip.open(path+'/cell_feature_matrix/features.tsv.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/features.tsv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cell_feature_matrix/matrix.mtx')==False:
+        with gzip.open(path+'/cell_feature_matrix/matrix.mtx.gz', 'rb') as f_in:
+            with open(path+'/cell_feature_matrix/matrix.mtx', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    if os.path.isfile(path+'/cells.csv')==False:
+        with gzip.open(path+'/cells.csv.gz', 'rb') as f_in:
+            with open(path+'/cells.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    a = mmread(path+'/cell_feature_matrix/matrix.mtx')
+    ad=a.todense()
+    cell_info=pd.read_csv(path+r"/cells.csv")
+    features=pd.read_csv(path+'/cell_feature_matrix/features.tsv',sep='\t',header=None,index_col=0)
+    barcodes=pd.read_csv(path+'/cell_feature_matrix/barcodes.tsv',header=None,index_col=0)
+    adata=sc.AnnData(ad.transpose(),obs=cell_info,var=features)
+    adata.var.index.name='index'
+    adata.var.columns=['gene_id','reason_of_inclusion']
+    f = open(path+'/gene_panel.json')
+    data = json.load(f)
+    geness=[]
+    idss=[]
+    descriptorss=[]
+    for r in range(len(data['payload']['targets'])):
+        geness.append(data['payload']['targets'][r]['type']['data']['name'])
+        try:
+            idss.append(data['payload']['targets'][r]['type']['data']['id'])
+        except:
+            idss.append('newid_'+str(r)) 
+        try:
+            descriptorss.append(data['payload']['targets'][r]['type']['descriptor'])
+        except:
+            descriptorss.append('other')
+    f.close()
+
+    dict_inpanel=dict(zip(geness,descriptorss))
+    dict_ENSEMBL=dict(zip(geness,idss))
+    adata.var['Ensembl ID']=adata.var['gene_id'].map(dict_ENSEMBL)
+    adata.var['in_panel']=adata.var['gene_id'].map(dict_inpanel)
+    if use_parquet==True:
+        transcripts=pd.read_parquet(path+'/transcripts.parquet')
+    else:
+        if os.path.isfile(path+'/transcripts.csv')==False:
+            with gzip.open(path+'/transcripts.csv.gz', 'rb') as f_in:
+                with open(path+'/transcripts.csv', 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+        transcripts=pd.read_csv(path+'/transcripts.csv')
+    adata.uns['spots']=transcripts
+    
+    UMAP=pd.read_csv(path+'/analysis/umap/gene_expression_2_components/projection.csv',index_col=0)
+    id2UMAP1=dict(zip(UMAP.index,UMAP.iloc[:,0]))
+    id2UMAP2=dict(zip(UMAP.index,UMAP.iloc[:,1]))
+    adata.obsm['X_umap_original']=np.array([adata.obs['cell_id'].map(id2UMAP1),adata.obs['cell_id'].map(id2UMAP2)]).transpose()
+    PCA=pd.read_csv(path+'/analysis/pca/gene_expression_10_components/projection.csv',index_col=0)
+    id2PCA1=dict(zip(PCA.index,PCA.iloc[:,0]))
+    id2PCA2=dict(zip(PCA.index,PCA.iloc[:,1]))
+    adata.obsm['X_pca_10_comp']=np.array([adata.obs['cell_id'].map(id2PCA1),adata.obs['cell_id'].map(id2PCA2)]).transpose()
+    dici={'/analysis/clustering/gene_expression_graphclust/clusters.csv':'graph_clusters',
+           '/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv':'kmeans2',
+           '/analysis/clustering/gene_expression_kmeans_3_clusters/clusters.csv':'kmeans3',
+           '/analysis/clustering/gene_expression_kmeans_4_clusters/clusters.csv':'kmeans4',
+           '/analysis/clustering/gene_expression_kmeans_5_clusters/clusters.csv':'kmeans5',
+           '/analysis/clustering/gene_expression_kmeans_6_clusters/clusters.csv':'kmeans6',
+           '/analysis/clustering/gene_expression_kmeans_7_clusters/clusters.csv':'kmeans7',
+           '/analysis/clustering/gene_expression_kmeans_8_clusters/clusters.csv':'kmeans8',
+           '/analysis/clustering/gene_expression_kmeans_9_clusters/clusters.csv':'kmeans9',
+          '/analysis/clustering/gene_expression_kmeans_10_clusters/clusters.csv':'kmeans10'
+    }
+    for subpath in dici.keys():
+        clust=pd.read_csv(path+subpath,index_col=0)
+        clustdict=dict(zip(clust.index,clust.iloc[:,0]))
+        adata.obs[dici[subpath]]=adata.obs['cell_id'].map(clustdict).astype(str)
+    adata.X=sp.sparse.csr_matrix(adata.X)
+    adata.uns['spots']=adata.uns['spots'].fillna(0)
+    adata.uns['spots']['fov_name']=adata.uns['spots']['fov_name'].astype(str)
+    adata.obsm['spatial']=np.array([adata.obs['x_centroid'],adata.obs['y_centroid']]).transpose()
+    adata.obs['sample']=tag
+    if save==True:
+        adata.write(output_path+tag+'_original.h5ad')
+    return adata
+
+def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20,save=True):
+    if max_nucleus_distance==0:
+        subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
+    if max_nucleus_distance>0:
+        subset1=adata1.uns['spots'].loc[adata1.uns['spots']['nucleus_distance']<max_nucleus_distance,:]
+    subset1=subset1[subset1['qv']>min_quality]
+    ct1=pd.crosstab(subset1['cell_id'],subset1['feature_name'])
+    adataobs=adata1.obs.loc[adata1.obs['cell_id'].isin(ct1.index),:]
+    av=adata1.var[adata1.var['gene_id'].isin(ct1.columns)]#.isin(adata1.var.index)
+    ct1=ct1.loc[:,av['gene_id']]
+    adataobs.index=adataobs['cell_id']
+    adataobs.index.name='ind'
+    ct1=ct1.loc[ct1.index.isin(adataobs['cell_id']),:]
+    adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs,var=av)
+    if save==True:
+        adata1nuc.write(output_path+tag+'_filtered.h5ad')
+    adata1nuc.obsm['spatial']=np.array([adata1nuc.obs['x_centroid'],adata1nuc.obs['y_centroid']]).transpose()
+    return adata1nuc
+
+def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_nucleus_distance=0,min_quality=40):
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    alladata=[]
+    for f in files:
+        tag=f.split('/')[-1]
+        print(f'Formatting {tag}')
+        adata=format_xenium_adata(f,tag,output_path,use_parquet=use_parquet,save=save)
+        print('Filter reads')
+        adata_f1=keep_nuclei_and_quality(adata,tag=tag,max_nucleus_distance=max_nucleus_distance,min_quality=min_quality,save=save)
+        #xf.format_background(f)
+        alladata.append(adata_f1)
+    adata=sc.concat(alladata,join='outer')
+    adata.var=alladata[0].var
+    adata.obs['total_counts']=np.sum(adata.X,axis=1)
+    adata.obs['expressed_genes']=np.sum(adata.X>0,axis=1)
+    adata.obs['unique_cell_id']=adata.obs['cell_id']+'_'+adata.obs['sample']
+    adata.var['ENSMBL_ID']=adata.var.index
+    adata.var.index=adata.var['gene_id']
+    if save==True:
+        adata.write(output_path+'combined_filtered.h5ad')
+    return adata

@@ -69,3 +69,17 @@ def generate_hex_colors(num_colors=70):
         hex_colors.append(color)
     return hex_colors
 
+
+
+def plot_cell_counts(adata,plot_path:str,save=True,clustering_params='clustering_params'):
+    fig,ax=plt.subplots(ncols=2,figsize=(12,3),dpi=100)
+    vivi=ax[0].hist(adata.obs['total_counts'],bins=200,color='#f9debd')
+    ax[0].set_xlabel('Counts/cell')
+    ax[0].set_ylabel('Total cells')
+    ax[0].axvline(x = clustering_params['min_counts_x_cell'], color = '#786e8a', label = 'axvline - full height')
+    vivi=ax[1].hist(adata.obs['expressed_genes'],bins=70,color='#f9debd')
+    ax[1].set_xlabel('Genes/cell')
+    ax[1].set_ylabel('Total cells')
+    ax[1].axvline(x=clustering_params['min_genes_x_cell'], color = '#786e8a', label = 'axvline - full height')
+    if save==True:
+        plt.savefig(plot_path+'cell_counts_histogram.png',dpi=200)

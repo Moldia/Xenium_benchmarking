@@ -226,3 +226,16 @@ def alphashape_fun(points,alpha=0.1):
     print("Area of the Alpha Shape (Concave Hull):", area)
     return area
 
+def svf_moranI(adata1,sample_key='sample',radius=50.0):
+    anndata_list=[]
+    for sample in adata.obs[sample_key].unique():
+        adata_copy_int = adata[adata.obs[sample_key]==sample]
+        sq.gr.spatial_neighbors(adata_copy_int,radius=radius,coord_type ='generic')
+        anndata_list.append(adata_copy_int) 
+    adata1=sc.concat(anndata_list,join='outer',pairwise=True) 
+    sq.gr.spatial_autocorr(adata1, mode="moran")
+    hs_results=adata1.uns["moranI"]
+    hs_results['rank']=list(hs_results['I'].rank())
+    hs_results=hs_results.loc[:,['pval_norm','pval_norm_fdr_bh','rank']]
+    hs_results.columns=['Pval','FDR','rank']
+    return adata1,hs_results
