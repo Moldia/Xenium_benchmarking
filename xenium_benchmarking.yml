@@ -186,7 +186,6 @@ dependencies:
       - typing-extensions==4.7.1
       - umap-learn==0.5.3
       - urllib3==1.26.11
-      - utag==0.1.1.dev38+g0d3d420
       - validators==0.20.0
       - vg==2.0.0
       - wcwidth==0.2.5
