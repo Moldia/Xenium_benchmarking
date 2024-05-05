@@ -15,7 +15,30 @@ import scipy as sp
 from xb.plotting import plot_cell_counts
 
 def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc=0,nuc=1,scale=False,hvg=False,default=False,total_clusters=30,norm=True,lg=True):
-#    print(adata.shape)
+    """ Preprocess and cluster the cells in adata, given the parameters specified. This function is mainly used for simulating the performance of different preprocessing strategies
+   
+    Parameters:
+    adata (AnnData): AnnData object with the cells of the experiment. 
+    norm(boolean): Whether to normalize based cells or not
+    target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size
+    lg(boolean): Whether to log-transforms cells.
+    mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters
+    mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters
+    neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors()
+    npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors()
+    scale(boolean): whether to scale the data or not
+    hvg(boolean): whether to select highly variable genes for further processing or not
+    total_clusters (int): number of clusters to obtain in the process of clustering (+-2)
+    default(boolean): whether the run is the original one or not
+     nuc(int): DEPRECATED. NOT USED IN THIS FUNCTION
+    
+    
+    
+
+    Returns:
+    adata: AnnData object with the preprocessed and clustered cells according to the parameters specified
+
+   """
     adata.layers['raw']=adata.X.copy()
     sc.pp.filter_cells(adata,min_counts=mincounts)
     sc.pp.filter_cells(adata,min_genes=mingenes)
@@ -33,7 +56,6 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
     sc.pp.pca(adata)
     print(adata.shape)
     sc.pp.neighbors(adata, n_neighbors=neigh, n_pcs=npc)
-#    sc.tl.leiden(adata,resolution=2.2,key_added='leiden_2_2')
     resol=1.4
     sc.tl.leiden(adata,resolution=resol,key_added='leiden_1_4')
     numclust=int(np.max(adata.obs['leiden_1_4'].astype(int)))
