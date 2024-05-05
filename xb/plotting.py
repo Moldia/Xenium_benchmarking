@@ -9,15 +9,24 @@ import random
 
 def map_of_clusters(adata,key='leiden',clusters='all',size=8,background='white',figuresize=(10,7),save=None,format='pdf'):
     
-    #PARAMETERS TO MODIFY:
-    #-key: the terms in adata.obs that you want to plot
-    #-clusters:'all' for plotting all clusters in a single plot, 'individual': for plots of individual genes, or ['3','5'] (your groups
-    #          between square brackets to plot only some clusters
-    #-size: to change the size of your spots
-    #-background: to change the color of the background
-    #-figuresize: to specify the size of your figure
-    #-save: if you want to save your figure, give the PATH of the folder where you want to save it
-    #-format: specify the format in which you want to save your figure
+   """ Make spatial plots based on a given adata object.
+   
+    Parameters:
+    key (str): the terms in adata.obs that you want to plot
+    clusters (str or list):'all' for plotting all clusters in a single plot, 'individual': for plots of individual genes, or ['3','5'] (your groups between square brackets to plot only some clusters
+    size: to change the size of your spots
+    background (str): color of the background 
+    figuresize (tupple): to specify the size of your figure
+    save (boolean or str): whether want to save your figure. If so, please add the PATH of the folder where you want to save it
+    format (str): specify the format in which you want to save your figure (i.e. '.pdf', '.png')
+
+    Returns:
+    None
+   
+   """
+
+
+
     
     try:
         adata.obs[key]=adata.obs[key].astype(int)
@@ -62,6 +71,16 @@ def map_of_clusters(adata,key='leiden',clusters='all',size=8,background='white',
 #        plt.title('Group: '+ paste(clusters))
 
 def generate_hex_colors(num_colors=70):
+    """ Generate a list of hex colors.
+    
+    Parameters:
+    num_colors(int): number of colors to generate
+    
+    Returns:
+    hex_colors (list):list of randomly generated colors
+   
+   """   
+    
     hex_colors = []
     for _ in range(num_colors):
         # Generate a random hex color
@@ -71,7 +90,19 @@ def generate_hex_colors(num_colors=70):
 
 
 
-def plot_cell_counts(adata,plot_path:str,save=True,clustering_params='clustering_params'):
+def plot_cell_counts(adata,plot_path:str,save=True,clustering_params={}):
+      """ Plot the histogram of the counts detected per cell
+   
+    Parameters:
+    adata (AnnData): AnnData object with the information of cells profiled
+    plot_path (str): path where to save the generated plot, if needed
+    save (boolean): whether to save or not the output path
+    clustering_params (dict): list of parameters used for preprocessing and clustering the experiment 
+
+    Returns:
+    None
+   
+   """
     fig,ax=plt.subplots(ncols=2,figsize=(12,3),dpi=100)
     vivi=ax[0].hist(adata.obs['total_counts'],bins=200,color='#f9debd')
     ax[0].set_xlabel('Counts/cell')
@@ -86,6 +117,16 @@ def plot_cell_counts(adata,plot_path:str,save=True,clustering_params='clustering
         
         
 def plot_domains(adata,groupby='nbd_domain'):
+    """ Generate the spatial plots of the domains previously identified
+   
+    Parameters:
+    adata (AnnData): AnnData object with the information of cells profiled
+    groupby (str): Name of the column in adata.obs where the domain information is stored
+
+    Returns:
+    None
+
+    """
     for s in adata.obs['sample'].unique():
         adatasub=adata[adata.obs['sample']==s]
         sc.pl.spatial(adatasub,color=groupby,spot_size=40)
