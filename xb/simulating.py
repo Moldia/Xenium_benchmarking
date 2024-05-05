@@ -11,8 +11,20 @@ import tifffile as tf
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 from anndata import AnnData
 import json
+from sklearn.metrics import mutual_info_score
+from sklearn.metrics import fowlkes_mallows_score
 
 def missegmentation_simulation(adata_sc_sub,missegmentation_percentage=0.1):
+     """ Simulate missegmentation using a reference single cell data in adata form. 
+   
+    Parameters:
+    adata_sc_sub (AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   
+    missegmentation_percentage (float): percentage of cells (%) that are presenting missegmentation
+
+    Returns:
+    adata_sc_sub(AnnData): AnnData object with the cells where missegmentation has been simulated according to input parameters
+
+   """
     exp=adata_sc_sub.to_df()
     if missegmentation_percentage>0:
         cells_affected=int(exp.shape[0]*(missegmentation_percentage/100))
@@ -23,7 +35,18 @@ def missegmentation_simulation(adata_sc_sub,missegmentation_percentage=0.1):
             exp.loc[target,:]=exp.loc[target,:]+(exp.loc[source,:]*missegmentation_importance)
         adata_sc_sub.X=np.array(exp.astype(int))
     return adata_sc_sub
+
 def noise_adder(adata_sc,percentage_of_noise=0.1):
+    """ Add noise to a single cell data inputed according to input parameters 
+   
+    Parameters:
+    adata_sc (AnnData): AnnData object with the cells of the experiment before adding noise
+    percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
+
+    Returns:
+    adata_sc(AnnData): AnnData object with the cells where noise has been added
+
+   """
     noise_events=int(np.sum(adata_sc.X)*(percentage_of_noise/100))
     for i in range(0,noise_events):
         x=random.sample(range(0,adata_sc.X.shape[0]),1)
@@ -36,6 +59,24 @@ def noise_adder(adata_sc,percentage_of_noise=0.1):
 def subset_of_single_cell(adata_sc_sub,markers,random_markers_percentage=0,
                           reads_x_cell=None,number_of_markers=200,
                          n_reads_x_gene=40,percentage_of_noise=0.1,ms_percentage=0.1):
+    """ Transform a single cell data to present spatial characteristics
+   
+    Parameters:
+    adata_sc_sub (AnnData): AnnData object with the cells obtained from single cell datasets before transforming them into spatial-like datasets  
+    markers (DataFrame): dataframe incluing the main markers identified per cluster per cluster
+    random_markers_percentage (float): percentage of non-marker genes included randomly in the genes selected for the panel
+    reads_x_cell=None
+    n_reads_x_gene (int,None): if int, final number of reads/cells required in the spatial-like datasets. If None, cells are not transformed
+    number_of_markers (int): total number of genes to be included in the simulated dataset.
+    n_reads_x_gene (int): final number of reads/gene required in the spatial-like datasets
+    percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
+    ms_percentage (float): percentage of cells (%) that are presenting missegmentation
+
+    Returns:
+    adata_sc(AnnData): AnnData object with the cells after transfroming them into spatial-like datasets
+
+   """
+                             
     mk=[]
     number_of_markers_x_cluster=int(np.ceil(number_of_markers/markers.shape[1])+1)
     for ind in  markers.index[0:number_of_markers_x_cluster]:
@@ -67,25 +108,58 @@ def subset_of_single_cell(adata_sc_sub,markers,random_markers_percentage=0,
         sc.pp.downsample_counts(adata_sc,counts_per_cell=reads_x_cell)
     print(adata_sc.shape)
     return adata_sc
-from sklearn.metrics import mutual_info_score
 
 def entropy(clustering):
+    """ Compute entropy
+   
+    Parameters:
+    clustering (list): list of clusters assigned to cells
+
+    Returns:
+     entropy_value(float): entropy value computed.
+
+   """
     _, counts = np.unique(clustering, return_counts=True)
     proportions = counts / len(clustering)
-    return -np.sum(proportions * np.log(proportions))
+    entropy_value=-np.sum(proportions * np.log(proportions))
+    return entropy_value
 
 def compute_vi(ground_truth, predicted):
+    """ Compute variation of information for comparing two different clusterings
+   
+    Parameters:
+    ground_truth (list): list of reference clusters given to cells profiled
+    predicted (list): list of predicted/computed clusters for cells profiled
+
+    Returns:
+     vi_score(float): variation of information 
+
+   """    
+    
     mi = mutual_info_score(ground_truth, predicted)
     h_gt = entropy(ground_truth)
     h_pred = entropy(predicted)
     vi_score = h_gt + h_pred - 2 * mi
     return vi_score
 
-from sklearn.metrics import fowlkes_mallows_score
+
 
 def compute_fmi(ground_truth, predicted):
+    """ Compute fowlkes mallows index for two different clusterings
+   
+    Parameters:
+    ground_truth (list): list of reference clusters given to cells profiled
+    predicted (list): list of predicted/computed clusters for cells profiled
+
+    Returns:
+     fmi_score(float): fowlkes mallows index
+
+   """   
     fmi_score = fowlkes_mallows_score(ground_truth, predicted)
     return fmi_score
+
+
+
 def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
     if overlaps_nucleus==1:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
