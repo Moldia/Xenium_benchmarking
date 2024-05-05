@@ -161,7 +161,18 @@ def compute_fmi(ground_truth, predicted):
 
 
 def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
-    if overlaps_nucleus==1:
+     """ Redefine cell expression based on nuclei expression an quality of detected reads
+   
+    Parameters:
+    adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear
+    overlaps_nucleus(int): Keep reads overlapping nucleus only (1) or all (2)
+    qvmin(int): Define minimum quality (qv) of reads to keep in the analysis 
+   
+    Returns:
+    adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters
+
+   """
+     if overlaps_nucleus==1:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
     if overlaps_nucleus==0:
         subset1=adata1.uns['spots']
@@ -179,7 +190,16 @@ def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
 # using a baseline, modify parameters one by one
 # making it into a function
 def allcombs(adata):
-    default={'nuc':1,'npcs':0,'neighs':16,'qvs':0,'scale':True,'hvgs':False,'ts':100,'norm':True,'lg':True} 
+     """ Simulate preprocessing workflows and extract results based on it
+   
+    Parameters:
+    adata (AnnData): AnnData object with the cells of the experiment 
+   
+    Returns:
+    allres(DataFrame): Clustering obtained with different preprocessing workflows
+
+   """
+     default={'nuc':1,'npcs':0,'neighs':16,'qvs':0,'scale':True,'hvgs':False,'ts':100,'norm':True,'lg':True} 
     try:
         del allres
     except:
@@ -296,7 +316,6 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
     if abs(numclust-targetnum)>3:
         i=0
         while abs(int(numclust)-int(targetnum))>3:
-    #        print('iter '+str(i))
             if numclust>targetnum:
                 resol=resol-0.05
             if numclust<targetnum:  
@@ -306,16 +325,11 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
             i=i+1
             if i >100:
                 break
-#    sc.tl.umap(adata)
-#    sc.pl.umap(adata,color=['leiden_1_4','louvain_1_4','leiden'],ncols=1)
     if default==True:
         return adata,targetnum
     else:
         return adata
-    
-# using a baseline, modify parameters one by one
-# making it into a function
-################################################DEFAULT KEY################################
+
 def allcombs_simulated(adata,default_key='class'):
     default={'nuc':1,'npcs':0,'neighs':12,'qvs':0,'scale':False,'hvgs':False,'ts':1000000}# default is never done
     try:
