@@ -15,6 +15,17 @@ import scipy as sp
 
 
 def format_xenium_adata(path,tag,output_path):
+    """ Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)
+   
+    Parameters:
+    path(str): path to the folder where the output of the Xenium machine is stored
+    tag(str): sample tag to be added to be added to all cells formated from the section. 
+    output_path(str): path where to store the resulting adata object
+
+    Returns:
+    adata: AnnData object with the formated cells
+
+   """
     #decompress
     if os.path.isfile(path+'/transcripts.csv')==False:
         with gzip.open(path+'/transcripts.csv.gz', 'rb') as f_in:
@@ -105,6 +116,17 @@ def format_xenium_adata(path,tag,output_path):
     
 
 def format_xenium_adata_2023(path,tag,output_path):
+    """ Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023
+   
+    Parameters:
+    path(str): path to the folder where the output of the Xenium machine is stored
+    tag(str): sample tag to be added to be added to all cells formated from the section. 
+    output_path(str): path where to store the resulting adata object
+
+    Returns:
+    adata: AnnData object with the formated cells
+
+   """
     #decompress
     if os.path.isfile(path+'/transcripts.csv')==False:
         with gzip.open(path+'/transcripts.csv.gz', 'rb') as f_in:
@@ -202,6 +224,17 @@ def format_xenium_adata_2023(path,tag,output_path):
 
 
 def format_xenium_adata_mid_2023(path,tag,output_path):
+    """ Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023
+   
+    Parameters:
+    path(str): path to the folder where the output of the Xenium machine is stored
+    tag(str): sample tag to be added to be added to all cells formated from the section. 
+    output_path(str): path where to store the resulting adata object
+
+    Returns:
+    adata: AnnData object with the formated cells
+
+   """
     if os.path.isdir(path+'/cell_feature_matrix')==False:
     # Path of the file
         extr=path+'/cell_feature_matrix.tar.gz'
@@ -312,6 +345,15 @@ def format_xenium_adata_mid_2023(path,tag,output_path):
 
 
 def format_background(path):
+    """ Format OME-TIFF background mipped image to .tiff image
+   
+    Parameters:
+    path(str): path to the folder where the output of the Xenium machine is stored
+   
+    Returns:
+    None
+
+   """
     IM=tf.TiffFile(path+'/morphology_mip.ome.tif')
     position1_series = IM.series[0]
     position1_series.axes
@@ -320,6 +362,16 @@ def format_background(path):
     
     
 def keep_nuclei(adata1,overlaps_nucleus=1):
+    """ Redefine cells in AnnData to keep only nuclear reads 
+   
+    Parameters:
+    adata1(AnnData): AnnData object with the cells of the experiment.
+    overlaps_nucleus(int): whether to keep only nuclear reads only (1) or cytoplasmic reads (0) in the redefinition of cells 
+    
+    Returns:
+    adata: AnnData object with the formated cells
+
+   """
     subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
     ct1=pd.crosstab(subset1['cell_id'],subset1['feature_name'])
     adataobs=adata1.obs.loc[adata1.obs['cell_id'].isin(ct1.index),:]
@@ -347,23 +399,19 @@ def cell_area(adata_sp: AnnData,pipeline_output=True):
     area=hull.area#*10e6
     return area
 
-def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
-    if overlaps_nucleus==1:
-        subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
-    if overlaps_nucleus==0:
-        subset1=adata1.uns['spots']
-    subset1=subset1[subset1['qv']>qvmin]
-    ct1=pd.crosstab(subset1['cell_id'],subset1['feature_name'])
-    adataobs=adata1.obs.loc[adata1.obs['cell_id'].isin(ct1.index),:]
-    av=adata1.var.index[adata1.var.index.isin(ct1.columns)]#.isin(adata1.var.index)
-    ct1=ct1.loc[:,av]
-    adataobs.index=adataobs['cell_id']
-    adataobs.index.name='ind'
-    ct1=ct1.loc[ct1.index.isin(adataobs['cell_id']),:]
-    adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs)#,var=adata1.var)
-    return adata1nuc
 
 def generate_random_color_variation(base_color, deviation=0.17):
+     """ Generate variations of a reference color
+   
+    Parameters:
+    base_color (str):reference hex color
+    deviation(float): deviation from the base color that the resulting color should have.
+   
+    Returns:
+    modified_hex_color(str):resulting hex color
+
+   """
+    
     base_rgb = mcolors.hex2color(base_color)
     h, s, v = mcolors.rgb_to_hsv(base_rgb)
 
@@ -382,6 +430,18 @@ def generate_random_color_variation(base_color, deviation=0.17):
 
 
 def format_data_neighs(adata,sname,condit,neighs=10):
+    """ Redefine the expression of cells in adata by counting the neighnoring cell types of each cell
+
+    Parameters:
+    adata (AnnData): AnnData object with the cells of the experiment
+    sname(str): column in adata.obs where the cluster assigned to each cells are stored
+    neighs(int): number of neighbors to consider when computing neighboring cells
+    
+    Returns:
+    adata1 (AnnData): AnnData object with neighboring cell types included in a cell-by-celltype matrix
+    
+   """
+    
     try:
         adata.obsm['spatial']
     except:
@@ -405,6 +465,18 @@ def format_data_neighs(adata,sname,condit,neighs=10):
     return adata1
 
 def format_data_neighs_colapse(adata,sname,condit,neighs=10):
+     """ Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)
+
+    Parameters:
+    adata (AnnData): AnnData object with the cells of the experiment
+    sname(str): column in adata.obs where sample is stored
+    condit(str): column in adata.obs where the sample each cell belongs to is stored
+    neighs(int): number of neighbors to consider when collapsing the expression of neighboring cells
+    
+    Returns:
+    adata1 (AnnData): AnnData object with expression of cells collapsed from neighboring cells
+    
+   """
     adata.obsm["spatial"]=np.array([adata.obs.X,adata.obs.Y]).transpose().astype('float64')
     adata_copy_int=adata
     sq.gr.spatial_neighbors(adata_copy_int,n_neighs=neighs)
@@ -422,9 +494,20 @@ def format_data_neighs_colapse(adata,sname,condit,neighs=10):
 
 
 
-def format_xenium_adata(path,tag,output_path,use_parquet=True,save=True):
-    #decompress
+def format_xenium_adata_final(path,tag,output_path,use_parquet=True,save=True):
+    """ Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format.
+   
+    Parameters:
+    path(str): path to the folder where the output of the Xenium machine is stored, if requested
+    tag(str): sample tag to be added to be added to all cells formated from the section. 
+    output_path(str): path where to store the resulting adata object
+    use_parquet(boolean): whether to use parquet files as an input to generate the AnnData File. (it's way faster)
+    save(boolean): whether to save the resulting object
 
+    Returns:
+    adata: AnnData object with the formated cells
+
+   """
     if os.path.isfile(path+'/cell_feature_matrix/barcodes.tsv')==False:
         with gzip.open(path+'/cell_feature_matrix/barcodes.tsv.gz', 'rb') as f_in:
             with open(path+'/cell_feature_matrix/barcodes.tsv', 'wb') as f_out:
@@ -516,6 +599,20 @@ def format_xenium_adata(path,tag,output_path,use_parquet=True,save=True):
     return adata
 
 def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20,save=True,output_path=''):
+     """ Redefine cell expression based on nuclei expression an quality of detected reads
+   
+    Parameters:
+    adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear
+    tag (str): sample tag to added in the name of the saved filed, if needed
+    save(boolean): whether to save the resulting files
+    output_path(str): if needed, where to save the resulting files
+    max_nucleus_distance(float): Maximum distance from the nuclei for reads to be kept in redefined cells
+    min_quality(float): Define minimum quality (qv) of reads to keep in the analysis 
+   
+    Returns:
+    adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters
+
+   """
     if max_nucleus_distance==0:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
     if max_nucleus_distance>0:
@@ -534,14 +631,28 @@ def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20
     adata1nuc.obsm['spatial']=np.array([adata1nuc.obs['x_centroid'],adata1nuc.obs['y_centroid']]).transpose()
     return adata1nuc
 
-def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_nucleus_distance=0,min_quality=40):
+def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_nucleus_distance=0,min_quality=10):
+    """ Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters
+   
+    Parameters:
+    files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine)
+    output_path(str): path where to store the resulting adata object
+    use_parquet(boolean): whether to use parquet files as an input to generate the AnnData File. (it's way faster)
+    save(boolean): whether to save the resulting object
+    max_nucleus_distance: Maximum distance from the nuclei for reads to be kept in redefined cells
+    min_quality(float): Define minimum quality (qv) of reads to keep in the analysis 
+
+    Returns:
+    adata: AnnData object with the formated cells with only reads that passed the filters established
+
+   """
     if not os.path.exists(output_path):
         os.mkdir(output_path)
     alladata=[]
     for f in files:
         tag=f.split('/')[-1]
         print(f'Formatting {tag}')
-        adata=format_xenium_adata(f,tag,output_path,use_parquet=use_parquet,save=save)
+        adata=format_xenium_adata_final(f,tag,output_path,use_parquet=use_parquet,save=save)
         print('Filter reads')
         adata_f1=keep_nuclei_and_quality(adata,tag=tag,max_nucleus_distance=max_nucleus_distance,min_quality=min_quality,save=save,output_path=output_path)
         #xf.format_background(f)
