@@ -18,8 +18,7 @@ The Xenium datasets used in though this study combined datasets provided by 10X 
  
 To facilitate the reproducibility of our analysis, we also provided already pre-formated AnnData files for each dataset used in the study, available at [ADD ZENODO REPO UPON PUBLICAION]
 
-An **example dataset** (human spinal chord) used as an input for the end-to-end pipeline developed can be downloaded from  10.5281/zenodo.11120921
-
+An **example dataset** (human spinal chord) used as an input for the end-to-end pipeline developed can be downloaded from  https://doi.org/10.5281/zenodo.11120922
 
 ***
 
