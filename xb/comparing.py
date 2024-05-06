@@ -15,10 +15,31 @@ from sklearn.metrics import mutual_info_score
 from sklearn.metrics import fowlkes_mallows_score
 
 def combine_med(medians,tag):
+    """ Combine precomputed medians into a single dataframe
+   
+    Parameters:
+    medians(list): list of precomputed medians of expression
+    tag(str): tag to be added as a column to the list of medians. In here, this is the methods the medians where computed from
+    Returns:
+    mm(DataFrame): formated medians into a DataFrame
+
+   """
     mm=pd.DataFrame(medians,columns=['ratio'])
     mm['method']=tag
     return mm
+
+
 def median_calculator(adata_dict,df_filt):
+    """ Calculate medians expression for cells profiled with each technology compared to a reference single cell RNAseq dataset
+   
+    Parameters:
+    adata_dict (dict): dictionary including the names of the datasets analyzed as .keys() and AnnData's of each technologies as .values(). It includes a reference scRNAseq dataset in 'anno_scRNAseq'
+    df_filt(DataFrame): dataframe including the list of genes to be compared in .index.  
+    Returns:
+    means(dict): dictionary of means computed with names of the datasets in .keys() and a list of medians computed as .values()
+    genes_s(dict):dictionary of gene name of the means computed with names of the datasets in .keys() and a list of neme of the genes that have been used to compute medians computed as .values()
+
+   """
     gg=['anno_scRNAseq','anno_CosMx', 'anno_Hybriss', 'anno_MERFISH', 'anno_ResolveBio', 'anno_Vizgen', 'anno_Xenium']
     genes_s  = {
         'anno_scRNAseq': [],
@@ -63,7 +84,6 @@ def median_calculator(adata_dict,df_filt):
                     if gene in adata_dict[key].var.index:
                         subset = adata_dict[key][:, adata_dict[key].var.index == (gene)]
                         median_exp = np.median(subset.X[subset.X > minreads])
-                        #median_exp/rna_median
                         df_int = pd.DataFrame(subset.X[subset.X > minreads])
                         df_int['method'] = key
                         df_int[0].mean()/rna_median
@@ -76,12 +96,6 @@ def median_calculator(adata_dict,df_filt):
                         RNA_df = pd.concat(RNA_S)
                         RNA_df=RNA_df.reset_index()
 
-                    #means[key].append(df_int[0].mean()/rna_median)
-
             RNA_df['color'] = RNA_df.method.map(color_dicitonary)
-            #UNCOMMENT TO GET THE PLOT
-        #    sns.displot(data=RNA_df,x=RNA_df[0],hue='method',kind='ecdf',log_scale=True, palette=list(RNA_df['color'].unique()))
-        #    plt.title(gene)
-        #    plt.show()
-        #UNTIL HERE
+
     return means,genes_s
