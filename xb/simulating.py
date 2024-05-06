@@ -264,8 +264,33 @@ def allcombs(adata):
 
 
 def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc=0,nuc=1,scale=False,hvg=False,default=False,total_clusters=30,default_resol=1.6,logstatus=True,normstatus=True):
-#    print(adata.shape)
-    adata.layers['raw']=adata.X.copy()
+
+         """ preprocess and cluster cells in an Anndata object given some input parameters
+   
+    Parameters:
+    adata(AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   
+    target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size
+    mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters
+    mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters
+    neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors()
+    npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors()
+    nuc(int): wether to use only nuclear reads (1) or all reads (0)
+    scale(boolean): whether to scale the data or not
+    hvg(boolean): whether to select highly variable genes for further processing or not
+    default(boolean): whether the run is the original one or not
+    total_clusters (int): number of clusters to obtain in the process of clustering (+-2)
+    default_resol(float): clustering resolution to use as a default when clustering
+    logstatus(boolean): Whether to log-transforms cells.
+    normstatus(boolean): Whether to normalize based cells or not
+
+    Returns:
+    adata(AnnData): AnnData object after preprocessing and clustering
+
+   """
+     
+     
+     
+     adata.layers['raw']=adata.X.copy()
     sc.pp.filter_cells(adata,min_counts=mincounts)
     sc.pp.filter_cells(adata,min_genes=mingenes)
     adata.raw=adata
@@ -331,7 +356,18 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
         return adata
 
 def allcombs_simulated(adata,default_key='class'):
-    default={'nuc':1,'npcs':0,'neighs':12,'qvs':0,'scale':False,'hvgs':False,'ts':1000000}# default is never done
+    """ Simulate preprocessing workflows and extract results based on it for simulated data
+   
+    Parameters:
+    adata (AnnData): AnnData object with the cells of the experiment 
+    default_key(str): name of the column in adata.obs where the reference cell types/clusters are stored
+    Returns:
+    allres(DataFrame): Clustering obtained with different preprocessing workflows
+
+   """
+     
+     
+     default={'nuc':1,'npcs':0,'neighs':12,'qvs':0,'scale':False,'hvgs':False,'ts':1000000}# default is never done
     try:
         del allres
     except:
