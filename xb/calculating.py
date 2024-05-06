@@ -13,6 +13,9 @@ from anndata import AnnData
 import json
 from sklearn.metrics import mutual_info_score
 from sklearn.metrics import fowlkes_mallows_score
+import math
+from sklearn.metrics import normalized_mutual_info_score
+from shapely.geometry import Point, Polygon
 
 def dist_nuc(reads_ctdsub):
     """ Compute the median distance to the nuclei the edges of each cell, for all cells profiled
@@ -38,27 +41,51 @@ def dist_nuc(reads_ctdsub):
     return median_dist
 
 def hex_to_rgb(value):
+    """ Transform hex to rgb
+   
+    Parameters:
+    value (str): hex code to be transform (i.e '#h4a4a2')
+    
+    Returns:
+   rgb_value(tuple): Rgb value
+
+   """
     value = value.lstrip('#')
     lv = len(value)
-    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    rgb_value=tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
+    return rgb_value
+    
 def distance_calc (x1,y1,x2,y2):
-    import math
+     """ Calculate distance between two points
+   
+    Parameters:
+    x1(float): x coordinate of the first point
+    y1(float): y coordinate of the first point
+    x2(float): x coordinate of the second point
+    y2(float): y coordinate of the second point
+    
+    Returns:
+   distance (float): distance between the two points
+   """
+    
     distance = math.sqrt( ((x1-x2)**2)+((y1-y2)**2) )
     return(distance)
 
-# DISPERSION CALCULATES THE DISTANCE BETWEEN EACH READ AND ITS ASSIGNED CELL
 def dispersion(reads_original,adata1):
+""" Calculate the distance between each read and its assigned cell
+   
+    Parameters:
+    reads_original(DataFrame): information of all profiled reads
+    adata1(AnnData): object with the expression and metadata of cells profiled, including spatial position
+    
+    Returns:
+   reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell 
+   """
     reads_assigned=reads_original
     cells_metadata=adata1.obs
-    cells_metadata_filt=cells_metadata.loc[cells_metadata['cell_id'].isin(reads_assigned['cell_id']),:]
-    def distance_calc (x1,y1,x2,y2):
-        import math
-        distance = math.sqrt( ((x1-x2)**2)+((y1-y2)**2) )
-        return(distance)
+    cells_metadata_filt=cells_metadata.loc[cells_metadata['cell_id'].isin(reads_assigned['cell_id']),:]  
     reads_assigned=reads_assigned[reads_assigned['cell_id'].isin(cells_metadata_filt['cell_id'])]
-
-
     dictx=dict(zip(cells_metadata_filt['cell_id'],cells_metadata_filt['x_centroid']))
     dicty=dict(zip(cells_metadata_filt['cell_id'],cells_metadata_filt['y_centroid']))
     reads_assigned['x_cell']=list(reads_assigned['cell_id'].map(dictx))
@@ -67,34 +94,88 @@ def dispersion(reads_original,adata1):
     return reads_assigned
 
 def entropy(clustering):
+    """ Compute entropy
+   
+    Parameters:
+    clustering (list): list of clusters assigned to cells
+
+    Returns:
+     entropy_value(float): entropy value computed.
+
+   """
     _, counts = np.unique(clustering, return_counts=True)
     proportions = counts / len(clustering)
-    return -np.sum(proportions * np.log(proportions))
+    entropy_value=-np.sum(proportions * np.log(proportions))
+    return entropy_value
 
 def compute_vi(ground_truth, predicted):
+    """ Compute variation of information for comparing two different clusterings
+   
+    Parameters:
+    ground_truth (list): list of reference clusters given to cells profiled
+    predicted (list): list of predicted/computed clusters for cells profiled
+
+    Returns:
+     vi_score(float): variation of information 
+
+   """    
+    
     mi = mutual_info_score(ground_truth, predicted)
     h_gt = entropy(ground_truth)
     h_pred = entropy(predicted)
     vi_score = h_gt + h_pred - 2 * mi
     return vi_score
 
+
+
 def compute_fmi(ground_truth, predicted):
+    """ Compute fowlkes mallows index for two different clusterings
+   
+    Parameters:
+    ground_truth (list): list of reference clusters given to cells profiled
+    predicted (list): list of predicted/computed clusters for cells profiled
+
+    Returns:
+     fmi_score(float): fowlkes mallows index
+
+   """   
     fmi_score = fowlkes_mallows_score(ground_truth, predicted)
     return fmi_score
+    
 
-from sklearn.metrics import normalized_mutual_info_score
 def compute_nmi(ground_truth, predicted):
+     """ Compute normalized mutual information score for two different clusterings
+   
+    Parameters:
+    ground_truth (list): list of reference clusters given to cells profiled
+    predicted (list): list of predicted/computed clusters for cells profiled
+
+    Returns:
+     nmi_score(float): normalized mutual information
+
+   """   
     nmi_score = normalized_mutual_info_score(ground_truth, predicted)
     return nmi_score
 
-from shapely.geometry import Point, Polygon
+
+
 def domainassign(plsin,adatadom):
+    """ Assign cells to domains based on predefined polygons
+   
+    Parameters:
+    plsin (DataFrame): Information of polygons defining domains
+    adatadom (AnnData): cells profiled spatially in an AnnData object and with information of their spatial location in ['x_centroid'] and ['y_centroid']
+
+    Returns:
+     None
+
+   """   
+    
     adatadom.obs['region_annotation']='None'
     plt.figure()
     for sel in plsin['region_annotation'].unique():
         plsub=plsin[plsin['region_annotation']==sel]
         if plsub.shape[0]>2:
-    #        plt.figure()
             coord = np.array(plsub[['y','x']]).tolist()
             coord.append(coord[0])
             poli=Polygon(coord)
@@ -106,7 +187,7 @@ def domainassign(plsin,adatadom):
                 if pnt.within(poli)==True:
                     adatadom.obs.loc[n,'region_annotation']=sel
     plt.scatter(adatadom.obs['y_centroid'],adatadom.obs['x_centroid'],s=0.5)
-    plt.show() # if you need...
+    plt.show() 
 
 
 def negative_marker_purity_coexpression(adata_sp: AnnData, adata_sc: AnnData, key: str='celltype', pipeline_output: bool=True,minexp:float =0.0):
@@ -173,7 +254,6 @@ def negative_marker_purity_coexpression(adata_sp: AnnData, adata_sc: AnnData, ke
     mean_ct_sp_norm = mean_celltype_sp#.div(mean_celltype_sp.sum(axis=0),axis=1)
     # Explanation: The idea is to measure which ratio of mean expressions is shifted towards negative clusters.
     #              With this approach the metric stays between 0 and 1
-    
     commongenes=mean_ct_sc_rel.index
     # Get gene-cell type pairs with negative marker expression
     neg_marker_mask = np.array(mean_ct_sc_rel < minimum_exp)
@@ -217,6 +297,16 @@ def negative_marker_purity_coexpression(adata_sp: AnnData, adata_sc: AnnData, ke
 
     
 def coexpression_calculation(exp,min_exp=0):
+     """ Caculate coexpression between genes in a given dataset
+   
+    Parameters:
+    exp (DataFrame): expression of cells profiled in a cell x gene format, where cells are rows and genes are columns
+    min_exp (float): Maximum expression of the cells to be considered as not expressing a gene (typically is 0)
+
+    Returns:
+     coexpression(DataFrame): coexpression DataFrame represented as a gene-by-gene matrix.
+
+   """   
     coexpression=pd.DataFrame(index=exp.columns,columns=exp.columns)
     for col in tqdm(exp.columns):
         sel=exp.loc[:,col]>min_exp
@@ -227,18 +317,40 @@ def coexpression_calculation(exp,min_exp=0):
 
 
 def alphashape_fun(points,alpha=0.1):
+     """ Caculate area of a a cell 
+   
+    Parameters:
+    points (list of tuple): list of xy points found in a cell (i.e. [(1,2),(2,4)])
+    alpha (int): alpha parameter to be tuned to define cell border
+
+    Returns:
+     area(flaot): Area of the cell
+
+   """   
     alpha_shape = alphashape.alphashape(points, alpha)
     area = alpha_shape.area
     try:
         ax.add_patch(plt.PolygonPatch(alpha_shape, alpha=0.2, color='orange', label='Alpha Shape'))
     except:
         ss='ss'
-
-    # Print the area
     print("Area of the Alpha Shape (Concave Hull):", area)
     return area
 
 def svf_moranI(adata1,sample_key='sample',radius=50.0):
+     """ Compute spatially variable features using Moran's I (squidpy implementation)
+   
+    Parameters:
+    adata1 (AnnData): AnnData object of profiled cells
+    sample_key (str): Column of adata1.obs where sample of origin of each cell is stored.
+    radius (float): Radius usd to compute the spatial neighbors in sq.gr.spatial_neighbors. Given in the scale the spatial coordinates are in (typically in um)
+
+    Returns:
+     adata1 (AnnData): AnnData object of profiled cells with computed svf's
+     hs_results(DataFrame): DataFrame with the results of computing moran's I for each gene in the given input dataset, including pval, FDR and ranking of the gene
+     
+
+   """   
+    
     anndata_list=[]
     for sample in adata.obs[sample_key].unique():
         adata_copy_int = adata[adata.obs[sample_key]==sample]
