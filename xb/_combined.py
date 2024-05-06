@@ -7,6 +7,17 @@ def all_quality_metrics(
     adata_sp: AnnData,
 ) -> pd.DataFrame:
 
+    """ Compute all metrics quality metrics given an AnnData object 
+    
+    Parameters:
+    adata_sp (AnnData): AnnData object with the cells of the experiment 
+
+    Returns:
+    resulting_metrics(DataFrame): Quality metrics computed for the dataset used as an input
+
+   """
+
+    
     #Generate metrics
     metrics = {}
     
@@ -23,9 +34,9 @@ def all_quality_metrics(
     metrics['median_genexcell']=median_genes_cells(adata_sp)
     metrics['pct95_readsxcell']=percentile_95th_reads_cells(adata_sp)
     
+    resulting_metrics=pd.DataFrame.from_dict(metrics, orient='index')
     
     
     
-    
-    return pd.DataFrame.from_dict(metrics, orient='index')
+    return resulting_metrics
 
