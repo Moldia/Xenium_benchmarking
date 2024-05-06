@@ -15,6 +15,17 @@ from sklearn.metrics import mutual_info_score
 from sklearn.metrics import fowlkes_mallows_score
 
 def dist_nuc(reads_ctdsub):
+    """ Compute the median distance to the nuclei the edges of each cell, for all cells profiled
+   
+    Parameters:
+    reads_ctdsub (DataFrame): Dataframe containing the information of the transcripts profiled, incuding their location in 'x_location' and 'y_location', as well as the cell they are assigned to, in 'cell_id'
+
+
+    Returns:
+    median_dist(float): Median distance of cell edges for all cells profiled
+
+   """
+
     from scipy.spatial import ConvexHull, convex_hull_plot_2d
     allds=[]
     for g,n in reads_ctdsub.groupby('cell_id'):
@@ -23,7 +34,8 @@ def dist_nuc(reads_ctdsub):
             allds.append(np.mean(n.iloc[hull.vertices]['distance']))
         except:
             print()
-    return np.median(allds)
+    median_dist=np.median(allds)
+    return median_dist
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
