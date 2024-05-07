@@ -16,7 +16,7 @@ The Xenium datasets used in though this study combined datasets provided by 10X 
 - **Published datasets**: the spinal chord datasets used were originally published in Kukanja, Langseth et al. (Cell, 2024) (  https://doi.org/10.1016/j.cell.2024.02.030)
 - **Freshly generated datasets**: four mouse brain sections, labelled as "hm" through the study, were profiled for this analysis. Their original data can be downloaded from: https://doi.org/10.5281/zenodo.10566172
  
-To facilitate the reproducibility of our analysis, we also provided already pre-formated AnnData files for each dataset used in the study, available at [ADD ZENODO REPO UPON PUBLICAION]
+To facilitate the reproducibility of our analysis, we also provided already pre-formated AnnData files for each dataset used in the study, available at various Zenodo repositories (https://doi.org/10.5281/zenodo.11124988 , https://doi.org/10.5281/zenodo.11121221 , https://doi.org/10.5281/zenodo.11120307 )
 
 An **example dataset** (human spinal chord) used as an input for the end-to-end pipeline developed can be downloaded from  https://doi.org/10.5281/zenodo.11120922
 
