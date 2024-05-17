@@ -12,6 +12,7 @@ xb/neighborhood.py
 xb/plotting.py
 xb/preprocessing.py
 xb/simulating.py
+xb/util.py
 xb.egg-info/PKG-INFO
 xb.egg-info/SOURCES.txt
 xb.egg-info/dependency_links.txt

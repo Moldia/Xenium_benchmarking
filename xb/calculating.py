@@ -57,31 +57,31 @@ def hex_to_rgb(value):
     return rgb_value
     
 def distance_calc (x1,y1,x2,y2):
-     """ Calculate distance between two points
-   
+    """ Calculate distance between two points
+
     Parameters:
     x1(float): x coordinate of the first point
     y1(float): y coordinate of the first point
     x2(float): x coordinate of the second point
     y2(float): y coordinate of the second point
-    
+
     Returns:
-   distance (float): distance between the two points
-   """
+    distance (float): distance between the two points
+    """
     
     distance = math.sqrt( ((x1-x2)**2)+((y1-y2)**2) )
     return(distance)
 
 def dispersion(reads_original,adata1):
-""" Calculate the distance between each read and its assigned cell
-   
+    """ Calculate the distance between each read and its assigned cell
+
     Parameters:
     reads_original(DataFrame): information of all profiled reads
     adata1(AnnData): object with the expression and metadata of cells profiled, including spatial position
-    
+
     Returns:
-   reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell 
-   """
+    reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell 
+    """
     reads_assigned=reads_original
     cells_metadata=adata1.obs
     cells_metadata_filt=cells_metadata.loc[cells_metadata['cell_id'].isin(reads_assigned['cell_id']),:]  
@@ -144,16 +144,16 @@ def compute_fmi(ground_truth, predicted):
     
 
 def compute_nmi(ground_truth, predicted):
-     """ Compute normalized mutual information score for two different clusterings
-   
+    """ Compute normalized mutual information score for two different clusterings
+
     Parameters:
     ground_truth (list): list of reference clusters given to cells profiled
     predicted (list): list of predicted/computed clusters for cells profiled
 
     Returns:
-     nmi_score(float): normalized mutual information
+    nmi_score(float): normalized mutual information
 
-   """   
+    """   
     nmi_score = normalized_mutual_info_score(ground_truth, predicted)
     return nmi_score
 
@@ -297,8 +297,8 @@ def negative_marker_purity_coexpression(adata_sp: AnnData, adata_sc: AnnData, ke
 
     
 def coexpression_calculation(exp,min_exp=0):
-     """ Caculate coexpression between genes in a given dataset
-   
+    """ Caculate coexpression between genes in a given dataset
+
     Parameters:
     exp (DataFrame): expression of cells profiled in a cell x gene format, where cells are rows and genes are columns
     min_exp (float): Maximum expression of the cells to be considered as not expressing a gene (typically is 0)
@@ -306,7 +306,7 @@ def coexpression_calculation(exp,min_exp=0):
     Returns:
      coexpression(DataFrame): coexpression DataFrame represented as a gene-by-gene matrix.
 
-   """   
+    """   
     coexpression=pd.DataFrame(index=exp.columns,columns=exp.columns)
     for col in tqdm(exp.columns):
         sel=exp.loc[:,col]>min_exp
@@ -317,16 +317,16 @@ def coexpression_calculation(exp,min_exp=0):
 
 
 def alphashape_fun(points,alpha=0.1):
-     """ Caculate area of a a cell 
-   
+    """ Caculate area of a a cell 
+
     Parameters:
     points (list of tuple): list of xy points found in a cell (i.e. [(1,2),(2,4)])
     alpha (int): alpha parameter to be tuned to define cell border
 
     Returns:
-     area(flaot): Area of the cell
+    area(flaot): Area of the cell
 
-   """   
+    """   
     alpha_shape = alphashape.alphashape(points, alpha)
     area = alpha_shape.area
     try:
@@ -337,19 +337,18 @@ def alphashape_fun(points,alpha=0.1):
     return area
 
 def svf_moranI(adata1,sample_key='sample',radius=50.0):
-     """ Compute spatially variable features using Moran's I (squidpy implementation)
-   
+    """ Compute spatially variable features using Moran's I (squidpy implementation)
+
     Parameters:
     adata1 (AnnData): AnnData object of profiled cells
     sample_key (str): Column of adata1.obs where sample of origin of each cell is stored.
     radius (float): Radius usd to compute the spatial neighbors in sq.gr.spatial_neighbors. Given in the scale the spatial coordinates are in (typically in um)
 
     Returns:
-     adata1 (AnnData): AnnData object of profiled cells with computed svf's
-     hs_results(DataFrame): DataFrame with the results of computing moran's I for each gene in the given input dataset, including pval, FDR and ranking of the gene
-     
+    adata1 (AnnData): AnnData object of profiled cells with computed svf's
+    hs_results(DataFrame): DataFrame with the results of computing moran's I for each gene in the given input dataset, including pval, FDR and ranking of the gene
 
-   """   
+    """   
     
     anndata_list=[]
     for sample in adata.obs[sample_key].unique():

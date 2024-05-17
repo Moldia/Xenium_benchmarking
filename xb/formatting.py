@@ -12,6 +12,9 @@ from scipy.spatial import ConvexHull, convex_hull_plot_2d
 from anndata import AnnData
 import json
 import scipy as sp
+from pathlib import Path
+import tifffile
+from xb.util import get_image_shape, extract_physical_sizes, convert_polygons_to_label_image_xenium
 
 
 def format_xenium_adata(path,tag,output_path):
@@ -401,16 +404,16 @@ def cell_area(adata_sp: AnnData,pipeline_output=True):
 
 
 def generate_random_color_variation(base_color, deviation=0.17):
-     """ Generate variations of a reference color
-   
+    """ Generate variations of a reference color
+     
     Parameters:
     base_color (str):reference hex color
     deviation(float): deviation from the base color that the resulting color should have.
-   
+    
     Returns:
     modified_hex_color(str):resulting hex color
 
-   """
+    """
     
     base_rgb = mcolors.hex2color(base_color)
     h, s, v = mcolors.rgb_to_hsv(base_rgb)
@@ -431,7 +434,7 @@ def generate_random_color_variation(base_color, deviation=0.17):
 
 def format_data_neighs(adata,sname,condit,neighs=10):
     """ Redefine the expression of cells in adata by counting the neighnoring cell types of each cell
-
+    
     Parameters:
     adata (AnnData): AnnData object with the cells of the experiment
     sname(str): column in adata.obs where the cluster assigned to each cells are stored
@@ -439,9 +442,7 @@ def format_data_neighs(adata,sname,condit,neighs=10):
     
     Returns:
     adata1 (AnnData): AnnData object with neighboring cell types included in a cell-by-celltype matrix
-    
-   """
-    
+    """
     try:
         adata.obsm['spatial']
     except:
@@ -465,8 +466,8 @@ def format_data_neighs(adata,sname,condit,neighs=10):
     return adata1
 
 def format_data_neighs_colapse(adata,sname,condit,neighs=10):
-     """ Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)
-
+    """ Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)
+     
     Parameters:
     adata (AnnData): AnnData object with the cells of the experiment
     sname(str): column in adata.obs where sample is stored
@@ -475,8 +476,7 @@ def format_data_neighs_colapse(adata,sname,condit,neighs=10):
     
     Returns:
     adata1 (AnnData): AnnData object with expression of cells collapsed from neighboring cells
-    
-   """
+    """
     adata.obsm["spatial"]=np.array([adata.obs.X,adata.obs.Y]).transpose().astype('float64')
     adata_copy_int=adata
     sq.gr.spatial_neighbors(adata_copy_int,n_neighs=neighs)
@@ -599,7 +599,7 @@ def format_xenium_adata_final(path,tag,output_path,use_parquet=True,save=True):
     return adata
 
 def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20,save=True,output_path=''):
-     """ Redefine cell expression based on nuclei expression an quality of detected reads
+    """ Redefine cell expression based on nuclei expression an quality of detected reads
    
     Parameters:
     adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear
@@ -611,8 +611,7 @@ def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20
    
     Returns:
     adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters
-
-   """
+    """
     if max_nucleus_distance==0:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
     if max_nucleus_distance>0:
@@ -666,4 +665,139 @@ def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_n
     adata.var.index=adata.var['gene_id']
     if save==True:
         adata.write(output_path+'combined_filtered.h5ad')
+    return adata
+
+
+
+
+
+def prep_xenium_data_for_baysor(XENIUM_DIR:str, OUT_DIR:str,CROP=True, COORDS=[15000, 16000, 15000, 16000]):
+    """ Format xenium datasets for its use for baysor segmentation
+   
+    Parameters:
+    XENIUM_DIR(list): path where  the Xenium output is saved for each sample (output from the machine)
+    OUT_DIR(str): path where to store the resulting adata object
+    CROP(boolean): whether to use a small Region of interest for segmentation
+    COORDS(list): if CROP is used, coordinates of the crop in the form of [YMIN,YMAX,XMIN,XMAX]
+
+    Returns:
+    None
+
+   """
+    OUT_DIR=Path(str(OUT_DIR)+'/'+str(XENIUM_DIR.split('/')[-1:][0])+'_baysor')
+    XENIUM_DIR=Path(XENIUM_DIR)
+    # Get shape of full image
+    if not CROP:
+        YMAX, XMAX = get_image_shape(XENIUM_DIR / "morphology.ome.tif") 
+        YMIN, XMIN = 0, 0
+    # Or define a crop
+    else:
+        YMIN=COORDS[0]
+        YMAX=COORDS[1]
+        XMIN=COORDS[2]
+        XMAX=COORDS[3]
+
+
+    #-------------------------------------------------------------
+
+    # Create output directory
+    OUT_DIR.mkdir(exist_ok=True)
+    print("CHECKPOINT 1: Output directory created")
+
+    # Load spots
+    spots = pd.read_parquet(XENIUM_DIR / "transcripts.parquet")
+    print("CHECKPOINT 2: Spots loaded")
+
+    # Convert physical units of spots to pixel units
+    phys_sizes = extract_physical_sizes(XENIUM_DIR / "morphology.ome.tif")
+    phys_sizes = phys_sizes[list(phys_sizes.keys())[0]]
+    phys_sizes = {k:float(v) for k,v in phys_sizes.items()}
+    assert phys_sizes["PhysicalSizeX"] == phys_sizes["PhysicalSizeY"]
+    resolution = phys_sizes["PhysicalSizeX"]
+    spots["x_location"] /= resolution
+    spots["y_location"] /= resolution
+    # Note: we scale z µm the same way as x and y because the physical length for z pixels is larger than for xy pixels
+    # and Baysor assumes euclidean distances in space.
+    if ("z_location" in spots): 
+        spots["z_location"] /= resolution
+    print("CHECKPOINT 3: Spots converted to pixel units")  
+    if CROP:
+        # Subset spots to crop
+        spots = spots.loc[
+            (spots["y_location"] >= YMIN) & (spots["y_location"] < YMAX) & 
+            (spots["x_location"] >= XMIN) & (spots["x_location"] < XMAX)
+        ]
+        
+        # Offset positions if YMIN, XMIN are not 0
+        spots["x_location"] -= XMIN
+        spots["y_location"] -= YMIN
+    print("CHECKPOINT 4: Spots cropped")
+
+    # Load polygons
+    df_nuc = pd.read_parquet(XENIUM_DIR / "nucleus_boundaries.parquet")
+    print("CHECKPOINT 5: Polygons loaded")
+
+    # Convert physical units of polygons to pixel units
+    df_nuc["vertex_x"] /= resolution
+    df_nuc["vertex_y"] /= resolution
+
+    if CROP:
+        # Subset polygons to crop, NOTE: Polygons at border will be cut off
+        df_nuc = df_nuc.loc[
+            (df_nuc["vertex_y"] >= YMIN) & (df_nuc["vertex_y"] < YMAX) & 
+            (df_nuc["vertex_x"] >= XMIN) & (df_nuc["vertex_x"] < XMAX)
+        ]
+        # Offset positions if YMIN, XMIN are not 0
+        df_nuc["vertex_x"] -= XMIN
+        df_nuc["vertex_y"] -= YMIN
+    print("CHECKPOINT 6: Polygons cropped")
+
+    # Create label image
+    
+    series = pd.Series(df_nuc['cell_id'])
+    unique_numbers, _ = pd.factorize(series, sort=True)
+    df_nuc['label_id']=unique_numbers+1
+    
+    label_image = convert_polygons_to_label_image_xenium(df_nuc, (YMAX-YMIN, XMAX-XMIN),label_col='label_id')
+    print("CHECKPOINT 7: Label image created")
+
+    # Save spots, polygons and label image
+    spots.to_csv(OUT_DIR / "spots.csv", index=False)
+    print("CHECKPOINT 8: Spots saved")
+    df_nuc.to_csv(OUT_DIR / "polygons.csv", index=False)
+    print("CHECKPOINT 9: Polygons saved")
+    tifffile.imwrite(OUT_DIR / "label_image.tif", label_image)
+    print("CHECKPOINT 10: Label image saved")
+
+def batch_prep_xenium_data_for_baysor(files,outpath,CROP=True, COORDS=[1000, 5000, 1000, 5000]):
+    for f in files:
+        prep_xenium_data_for_baysor(f, output_path,CROP=False)
+        
+def format_baysor_output_to_adata(path:str,output_path:str):
+    """Format baysor's output to anndata
+    
+    Parameters:
+    path (AnnData): path to the folder where baysor's output is stored
+    output_path(str): path where to store the generated adata
+    
+    Returns:
+    adata (AnnData): AnnData object with the cells of the experiment
+
+    
+    """
+    read_info=pd.read_csv(path+'/segmentation.csv')
+    cell_stats=pd.read_csv(path+'/segmentation_cell_stats.csv')
+    read_info['cell_id']=read_info['cell']
+    expression=pd.crosstab(read_info['cell'],read_info['gene'])
+    cell_stats=cell_stats.loc[cell_stats['cell'].isin(expression.index),:]
+    expression=expression.loc[expression.index.isin(cell_stats['cell']),:]
+    expression=expression.loc[cell_stats['cell'],:]
+    adata=sc.AnnData(expression)
+    adata.obs=cell_stats
+    adata.uns['spots']=read_info
+    adata.obsm['spatial']=np.array(adata.obs.loc[:,['x','y']])
+    adata.obs['sample']=str(path.split('/')[-1:][0])
+    adata.uns['spots']['cell_id']=adata.uns['spots']['cell_id'].astype(str)
+    adata.uns['spots']['cell']=adata.uns['spots']['cell'].astype(str)
+    adata.write(output_path+str(path.split('/')[-1:][0])+'.h5ad')
     return adata

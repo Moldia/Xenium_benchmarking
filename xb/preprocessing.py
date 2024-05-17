@@ -96,7 +96,7 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
     
          
 def preprocess_adata(adata,save=True,clustering_params={},output_path='output_path'):
-     """ Preprocess and cluster the cells in adata given the parameters specified.
+    """ Preprocess and cluster the cells in adata given the parameters specified.
    
     Parameters:
     adata (AnnData): AnnData object with the cells of the experiment. 
@@ -108,8 +108,7 @@ def preprocess_adata(adata,save=True,clustering_params={},output_path='output_pa
 
     Returns:
     adata: AnnData object with the preprocessed and clustered cells according to the parameters specified
-   """
-    
+    """
     import matplotlib
     sc.set_figure_params(scanpy=True, dpi=150,figsize=(10,10))
     plt.rcParams['figure.facecolor'] = 'white'

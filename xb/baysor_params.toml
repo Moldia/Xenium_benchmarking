@@ -1,0 +1,6 @@
+[data]
+x = "x_location"
+y = "y_location"
+gene = "feature_name"
+min_molecules_per_gene = 1
+min_molecules_per_cell = 50
