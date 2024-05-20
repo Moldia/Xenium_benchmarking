@@ -16,14 +16,16 @@ from sklearn.metrics import fowlkes_mallows_score
 
 def combine_med(medians,tag):
     """ Combine precomputed medians into a single dataframe
-   
-    Parameters:
-    medians(list): list of precomputed medians of expression
-    tag(str): tag to be added as a column to the list of medians. In here, this is the methods the medians where computed from
-    Returns:
-    mm(DataFrame): formated medians into a DataFrame
 
-   """
+    Args:
+        medians(list): list of precomputed medians of expression.
+
+        tag(str): tag to be added as a column to the list of medians. In here, this is the methods the medians where computed from.
+    
+    results:
+        mm(DataFrame): formated medians into a DataFrame.
+    """
+
     mm=pd.DataFrame(medians,columns=['ratio'])
     mm['method']=tag
     return mm
@@ -31,15 +33,18 @@ def combine_med(medians,tag):
 
 def median_calculator(adata_dict,df_filt):
     """ Calculate medians expression for cells profiled with each technology compared to a reference single cell RNAseq dataset
-   
-    Parameters:
-    adata_dict (dict): dictionary including the names of the datasets analyzed as .keys() and AnnData's of each technologies as .values(). It includes a reference scRNAseq dataset in 'anno_scRNAseq'
-    df_filt(DataFrame): dataframe including the list of genes to be compared in .index.  
-    Returns:
-    means(dict): dictionary of means computed with names of the datasets in .keys() and a list of medians computed as .values()
-    genes_s(dict):dictionary of gene name of the means computed with names of the datasets in .keys() and a list of neme of the genes that have been used to compute medians computed as .values()
 
-   """
+    Args:
+        adata_dict (dict): dictionary including the names of the datasets analyzed as .keys() and AnnData's of each technologies as .values(). It includes a reference scRNAseq dataset in 'anno_scRNAseq'.
+
+        df_filt(DataFrame): dataframe including the list of genes to be compared in .index.  
+    
+    results:
+        means(dict): dictionary of means computed with names of the datasets in .keys() and a list of medians computed as .values().
+
+        genes_s(dict):dictionary of gene name of the means computed with names of the datasets in .keys() and a list of neme of the genes that have been used to compute medians computed as .values().
+    """
+
     gg=['anno_scRNAseq','anno_CosMx', 'anno_Hybriss', 'anno_MERFISH', 'anno_ResolveBio', 'anno_Vizgen', 'anno_Xenium']
     genes_s  = {
         'anno_scRNAseq': [],

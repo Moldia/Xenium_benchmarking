@@ -69,32 +69,28 @@ def convert_polygons_to_label_image_xenium(
     label_col:str = "label_id",
     verbose: bool = False,
 ) -> np.array:
-    ''' Create label image from a dataframe with polygons 
-    
+    """ Create label image from a dataframe with polygons 
+
     Xenium files to load as `df`: cell_boundaries.parquet or nucleus_boundaries.parquet (pd.read_parquet(path_to_file)).
     Note that polygon coordinates need to be transformed into pixel coordinates of the according image 
     (morphology.ome.tif).
-    
-    Arguments
-    ---------
-    df: pd.Dataframe
-        Dataframe containing polygon coordinates. Columns: "cell_id", "vertex_x", "vertex_y", "label_id"
-    img_shape: tuple
-        Shape of the image the polygons are drawn on.
-    x_col: str
-        Column name of the polygon vertices' x-coordinates in the dataframe.
-    y_col: str
-        Column name of the polygon vertices' y-coordinates in the dataframe.
-    label_col: str
-        Column name of the polygon/cell label in the dataframe.
-    verbose: bool
-        If True, print warnings for invalid polygons.
 
-    Returns:
-    ----------
-    np.array 
-        Label image with the same shape as the input image.
-    '''    
+    Args:
+        df: pd.Dataframe; Dataframe containing polygon coordinates. Columns: "cell_id", "vertex_x", "vertex_y", "label_id".
+
+        img_shape: tuple; Shape of the image the polygons are drawn on.
+
+        x_col: str; Column name of the polygon vertices' x-coordinates in the dataframe.
+
+        y_col: str; Column name of the polygon vertices' y-coordinates in the dataframe.
+
+        label_col: str; Column name of the polygon/cell label in the dataframe.
+        
+        verbose: bool; If True, print warnings for invalid polygons.
+
+    results:
+        np.array; Label image with the same shape as the input image.
+    """
     
     # Initialize label image
     labels = df[label_col].unique()

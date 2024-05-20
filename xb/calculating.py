@@ -19,15 +19,13 @@ from shapely.geometry import Point, Polygon
 
 def dist_nuc(reads_ctdsub):
     """ Compute the median distance to the nuclei the edges of each cell, for all cells profiled
-   
-    Parameters:
-    reads_ctdsub (DataFrame): Dataframe containing the information of the transcripts profiled, incuding their location in 'x_location' and 'y_location', as well as the cell they are assigned to, in 'cell_id'
 
+    Args:
+        reads_ctdsub (DataFrame): Dataframe containing the information of the transcripts profiled, incuding their location in 'x_location' and 'y_location', as well as the cell they are assigned to, in 'cell_id'.
 
-    Returns:
-    median_dist(float): Median distance of cell edges for all cells profiled
-
-   """
+    results:
+        median_dist(float): Median distance of cell edges for all cells profiled.
+    """
 
     from scipy.spatial import ConvexHull, convex_hull_plot_2d
     allds=[]
@@ -42,14 +40,14 @@ def dist_nuc(reads_ctdsub):
 
 def hex_to_rgb(value):
     """ Transform hex to rgb
-   
-    Parameters:
-    value (str): hex code to be transform (i.e '#h4a4a2')
-    
-    Returns:
-   rgb_value(tuple): Rgb value
 
-   """
+    Args:
+        value (str): hex code to be transform (i.e '#h4a4a2').
+
+    results:
+        rgb_value(tuple): Rgb value.
+    """
+    
     value = value.lstrip('#')
     lv = len(value)
     rgb_value=tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
@@ -59,29 +57,34 @@ def hex_to_rgb(value):
 def distance_calc (x1,y1,x2,y2):
     """ Calculate distance between two points
 
-    Parameters:
-    x1(float): x coordinate of the first point
-    y1(float): y coordinate of the first point
-    x2(float): x coordinate of the second point
-    y2(float): y coordinate of the second point
+    Args:
+        x1(float): x coordinate of the first point.
 
-    Returns:
-    distance (float): distance between the two points
+        y1(float): y coordinate of the first point.
+
+        x2(float): x coordinate of the second point.
+
+        y2(float): y coordinate of the second point.
+
+    results:
+        distance (float): distance between the two points.
     """
-    
+
     distance = math.sqrt( ((x1-x2)**2)+((y1-y2)**2) )
     return(distance)
 
 def dispersion(reads_original,adata1):
     """ Calculate the distance between each read and its assigned cell
 
-    Parameters:
-    reads_original(DataFrame): information of all profiled reads
-    adata1(AnnData): object with the expression and metadata of cells profiled, including spatial position
+    Args:
+        reads_original(DataFrame): information of all profiled reads.
 
-    Returns:
-    reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell 
+        adata1(AnnData): object with the expression and metadata of cells profiled, including spatial position.
+
+    results:
+        reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell. 
     """
+
     reads_assigned=reads_original
     cells_metadata=adata1.obs
     cells_metadata_filt=cells_metadata.loc[cells_metadata['cell_id'].isin(reads_assigned['cell_id']),:]  
@@ -95,14 +98,15 @@ def dispersion(reads_original,adata1):
 
 def entropy(clustering):
     """ Compute entropy
-   
-    Parameters:
-    clustering (list): list of clusters assigned to cells
 
-    Returns:
-     entropy_value(float): entropy value computed.
+    Args:
+        clustering (list): list of clusters assigned to cells.
 
-   """
+    results:
+        entropy_value(float): entropy value computed.
+
+    """
+
     _, counts = np.unique(clustering, return_counts=True)
     proportions = counts / len(clustering)
     entropy_value=-np.sum(proportions * np.log(proportions))
@@ -110,15 +114,15 @@ def entropy(clustering):
 
 def compute_vi(ground_truth, predicted):
     """ Compute variation of information for comparing two different clusterings
-   
-    Parameters:
-    ground_truth (list): list of reference clusters given to cells profiled
-    predicted (list): list of predicted/computed clusters for cells profiled
 
-    Returns:
-     vi_score(float): variation of information 
+    Args:
+        ground_truth (list): list of reference clusters given to cells profiled.
 
-   """    
+        predicted (list): list of predicted/computed clusters for cells profiled.
+
+    results:
+        vi_score(float): variation of information.
+    """    
     
     mi = mutual_info_score(ground_truth, predicted)
     h_gt = entropy(ground_truth)
@@ -130,15 +134,16 @@ def compute_vi(ground_truth, predicted):
 
 def compute_fmi(ground_truth, predicted):
     """ Compute fowlkes mallows index for two different clusterings
-   
-    Parameters:
-    ground_truth (list): list of reference clusters given to cells profiled
-    predicted (list): list of predicted/computed clusters for cells profiled
 
-    Returns:
-     fmi_score(float): fowlkes mallows index
+    Args:
+        ground_truth (list): list of reference clusters given to cells profiled.
 
-   """   
+        predicted (list): list of predicted/computed clusters for cells profiled.
+
+    results:
+        fmi_score(float): fowlkes mallows index.
+    """  
+
     fmi_score = fowlkes_mallows_score(ground_truth, predicted)
     return fmi_score
     
@@ -146,14 +151,15 @@ def compute_fmi(ground_truth, predicted):
 def compute_nmi(ground_truth, predicted):
     """ Compute normalized mutual information score for two different clusterings
 
-    Parameters:
-    ground_truth (list): list of reference clusters given to cells profiled
-    predicted (list): list of predicted/computed clusters for cells profiled
+    Args:
+        ground_truth (list): list of reference clusters given to cells profiled.
 
-    Returns:
-    nmi_score(float): normalized mutual information
+        predicted (list): list of predicted/computed clusters for cells profiled.
 
-    """   
+    results:
+        nmi_score(float): normalized mutual information.
+    """ 
+
     nmi_score = normalized_mutual_info_score(ground_truth, predicted)
     return nmi_score
 
@@ -161,15 +167,15 @@ def compute_nmi(ground_truth, predicted):
 
 def domainassign(plsin,adatadom):
     """ Assign cells to domains based on predefined polygons
-   
-    Parameters:
-    plsin (DataFrame): Information of polygons defining domains
-    adatadom (AnnData): cells profiled spatially in an AnnData object and with information of their spatial location in ['x_centroid'] and ['y_centroid']
 
-    Returns:
-     None
+    Args:
+        plsin (DataFrame): Information of polygons defining domains.
 
-   """   
+        adatadom (AnnData): cells profiled spatially in an AnnData object and with information of their spatial location in ['x_centroid'] and ['y_centroid'].
+
+    results:
+        None.
+    """   
     
     adatadom.obs['region_annotation']='None'
     plt.figure()
@@ -192,23 +198,20 @@ def domainassign(plsin,adatadom):
 
 def negative_marker_purity_coexpression(adata_sp: AnnData, adata_sc: AnnData, key: str='celltype', pipeline_output: bool=True,minexp:float =0.0):
     """ Negative marker purity aims to measure read leakeage between cells in spatial datasets. 
-    
+
     For this, we calculate the increase in reads assigned in spatial datasets to pairs of genes-celltyes with no/very low expression in scRNAseq
-    
-    Parameters
-    ----------
-    adata_sp : AnnData
-        Annotated ``AnnData`` object with counts from spatial data
-    adata_sc : AnnData
-        Annotated ``AnnData`` object with counts scRNAseq data
-    key : str
-        Celltype key in adata_sp.obs and adata_sc.obs
-    pipeline_output : float, optional
-        Boolean for whether to use the function in the pipeline or not
-    Returns
-    -------
-    negative marker purity : float
-       Increase in proportion of reads assigned in spatial data to pairs of genes-celltyes with no/very low expression in scRNAseq
+
+    Args:
+        adata_sp : AnnData; Annotated ``AnnData`` object with counts from spatial data.
+
+        adata_sc : AnnData; Annotated ``AnnData`` object with counts scRNAseq data.
+
+        key : str; Celltype key in adata_sp.obs and adata_sc.obs.
+
+        pipeline_output : float, optional; Boolean for whether to use the function in the pipeline or not.
+
+    returns:
+        negative marker purity : float; Increase in proportion of reads assigned in spatial data to pairs of genes-celltyes with no/very low expression in scRNAseq. 
     """   
     
     # Set threshold parameters
@@ -299,14 +302,15 @@ def negative_marker_purity_coexpression(adata_sp: AnnData, adata_sc: AnnData, ke
 def coexpression_calculation(exp,min_exp=0):
     """ Caculate coexpression between genes in a given dataset
 
-    Parameters:
-    exp (DataFrame): expression of cells profiled in a cell x gene format, where cells are rows and genes are columns
-    min_exp (float): Maximum expression of the cells to be considered as not expressing a gene (typically is 0)
+    Args:
+        exp (DataFrame): expression of cells profiled in a cell x gene format, where cells are rows and genes are columns.
 
-    Returns:
-     coexpression(DataFrame): coexpression DataFrame represented as a gene-by-gene matrix.
+        min_exp (float): Maximum expression of the cells to be considered as not expressing a gene (typically is 0).
 
-    """   
+    results:
+        coexpression(DataFrame): coexpression DataFrame represented as a gene-by-gene matrix.
+    """  
+
     coexpression=pd.DataFrame(index=exp.columns,columns=exp.columns)
     for col in tqdm(exp.columns):
         sel=exp.loc[:,col]>min_exp
@@ -319,14 +323,15 @@ def coexpression_calculation(exp,min_exp=0):
 def alphashape_fun(points,alpha=0.1):
     """ Caculate area of a a cell 
 
-    Parameters:
-    points (list of tuple): list of xy points found in a cell (i.e. [(1,2),(2,4)])
-    alpha (int): alpha parameter to be tuned to define cell border
+    Args:
+        points (list of tuple): list of xy points found in a cell (i.e. [(1,2),(2,4)]).
 
-    Returns:
-    area(flaot): Area of the cell
+        alpha (int): alpha parameter to be tuned to define cell border.
 
-    """   
+    results:
+        area(flaot): Area of the cell.
+    """ 
+
     alpha_shape = alphashape.alphashape(points, alpha)
     area = alpha_shape.area
     try:
@@ -339,15 +344,17 @@ def alphashape_fun(points,alpha=0.1):
 def svf_moranI(adata1,sample_key='sample',radius=50.0):
     """ Compute spatially variable features using Moran's I (squidpy implementation)
 
-    Parameters:
-    adata1 (AnnData): AnnData object of profiled cells
-    sample_key (str): Column of adata1.obs where sample of origin of each cell is stored.
-    radius (float): Radius usd to compute the spatial neighbors in sq.gr.spatial_neighbors. Given in the scale the spatial coordinates are in (typically in um)
+    Args:
+        adata1 (AnnData): AnnData object of profiled cells.
 
-    Returns:
-    adata1 (AnnData): AnnData object of profiled cells with computed svf's
-    hs_results(DataFrame): DataFrame with the results of computing moran's I for each gene in the given input dataset, including pval, FDR and ranking of the gene
+        sample_key (str): Column of adata1.obs where sample of origin of each cell is stored.
+        
+        radius (float): Radius usd to compute the spatial neighbors in sq.gr.spatial_neighbors. Given in the scale the spatial coordinates are in (typically in um).
 
+    results:
+        adata1 (AnnData): AnnData object of profiled cells with computed svf's.
+
+        hs_results(DataFrame): DataFrame with the results of computing moran's I for each gene in the given input dataset, including pval, FDR and ranking of the gene.
     """   
     
     anndata_list=[]

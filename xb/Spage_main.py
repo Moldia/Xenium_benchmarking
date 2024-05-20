@@ -6,7 +6,7 @@ unmeasured genes from the scRNA-seq data.
 The integration is performed using the domain adaption method PRECISE [2]
 	
 References
--------
+----------
     [1] Abdelaal T., Mourragui S., Mahfouz A., Reiders M.J.T. (2020)
     SpaGE: Spatial Gene Enhancement using scRNA-seq
     [2] Mourragui S., Loog M., Reinders M.J.T., Wessels L.F.A. (2019)
@@ -27,27 +27,28 @@ def SpaGE(Spatial_data,RNA_data,n_pv,genes_to_predict=None):
         and enhance the spatial data by predicting the expression of the spatially 
         unmeasured genes from the scRNA-seq data.
         
-        Parameters
-        -------
-        Spatial_data : Dataframe
-            Normalized Spatial data matrix (cells X genes).
-        RNA_data : Dataframe
-            Normalized scRNA-seq data matrix (cells X genes).
-        n_pv : int
-            Number of principal vectors to find from the independently computed
-            principal components, and used to align both datasets. This should
-            be <= number of shared genes between the two datasets.
-        genes_to_predict : str array 
-            list of gene names missing from the spatial data, to be predicted 
-            from the scRNA-seq data. Default is the set of different genes 
-            (columns) between scRNA-seq and spatial data.
+        Args:  
+            Spatial_data : Dataframe
+                Normalized Spatial data matrix (cells X genes).
+
+            RNA_data : Dataframe
+                Normalized scRNA-seq data matrix (cells X genes).
+
+            n_pv : int
+                Number of principal vectors to find from the independently computed
+                principal components, and used to align both datasets. This should
+                be <= number of shared genes between the two datasets.
+
+            genes_to_predict : str array 
+                list of gene names missing from the spatial data, to be predicted 
+                from the scRNA-seq data. Default is the set of different genes 
+                (columns) between scRNA-seq and spatial data.
             
-        Return
-        -------
-        Imp_Genes: Dataframe
-            Matrix containing the predicted gene expressions for the spatial 
-            cells. Rows are equal to the number of spatial data rows (cells), 
-            and columns are equal to genes_to_predict,  .
+        results:  
+            Imp_Genes: Dataframe
+                Matrix containing the predicted gene expressions for the spatial 
+                cells. Rows are equal to the number of spatial data rows (cells), 
+                and columns are equal to genes_to_predict,  .
     """
     
     if genes_to_predict is SpaGE.__defaults__[0]:
@@ -104,7 +105,7 @@ Notes
 	-
 	
 References
--------
+----------
 	[1] Pedregosa, Fabian, et al. (2011) Scikit-learn: Machine learning in Python.
 	Journal of Machine Learning Research
 """
@@ -115,21 +116,20 @@ from sklearn.cross_decomposition import PLSRegression
 
 
 def process_dim_reduction(method='pca', n_dim=10):
-    """
-    Default linear dimensionality reduction method. For each method, return a
+    """ Default linear dimensionality reduction method. For each method, return a
     BaseEstimator instance corresponding to the method given as input.
-	Attributes
-    -------
-    method: str, default to 'pca'
-    	Method used for dimensionality reduction.
-    	Implemented: 'pca', 'ica', 'fa' (Factor Analysis), 
-    	'nmf' (Non-negative matrix factorisation), 'sparsepca' (Sparse PCA).
-    
-    n_dim: int, default to 10
-    	Number of domain-specific factors to compute.
-    Return values
-    -------
-    Classifier, i.e. BaseEstimator instance
+
+    Args:
+        method: str, default to 'pca'
+            Method used for dimensionality reduction.
+            Implemented: 'pca', 'ica', 'fa' (Factor Analysis), 
+            'nmf' (Non-negative matrix factorisation), 'sparsepca' (Sparse PCA).
+        
+        n_dim: int, default to 10
+            Number of domain-specific factors to compute.
+
+    results:
+        Classifier, i.e. BaseEstimator instance
     """
 
     if method.lower() == 'pca':
@@ -204,7 +204,7 @@ Notes
 	Examples are given in the vignette
 	
 References
--------
+----------
 	[1] Golub, G.H. and Van Loan, C.F., 2012. "Matrix computations" (Vol. 3). JHU Press.
 	[2] Mourragui, S., Loog, M., Reinders, M.J.T., Wessels, L.F.A. (2019)
     PRECISE: A domain adaptation approach to transfer predictors of drug response
@@ -220,30 +220,37 @@ from sklearn.preprocessing import normalize
 
 class PVComputation:
     """
-    Attributes
-    -------
-    n_factors: int
-        Number of domain-specific factors to compute.
-    n_pv: int
-        Number of principal vectors.
-    dim_reduction_method_source: str
-        Dimensionality reduction method used for source data
-    dim_reduction_target: str
-        Dimensionality reduction method used for source data
-    source_components_ : numpy.ndarray, shape (n_pv, n_features)
-        Loadings of the source principal vectors ranked by similarity to the
-        target. Components are in the row.
-    source_explained_variance_ratio_: numpy.ndarray, shape (n_pv)
-        Explained variance of the source on each source principal vector.
-    target_components_ : numpy.ndarray, shape (n_pv, n_features)
-        Loadings of the target principal vectors ranked by similarity to the
-        source. Components are in the row.
-    target_explained_variance_ratio_: numpy.ndarray, shape (n_pv)
-        Explained variance of the target on each target principal vector.
-    cosine_similarity_matrix_: numpy.ndarray, shape (n_pv, n_pv)
-        Scalar product between the source and the target principal vectors. Source
-        principal vectors are in the rows while target's are in the columns. If
-        the domain adaptation is sensible, a diagonal matrix should be obtained.
+    Attributes:
+        n_factors: int
+            Number of domain-specific factors to compute.
+
+        n_pv: int
+            Number of principal vectors.
+
+        dim_reduction_method_source: str
+            Dimensionality reduction method used for source data.
+
+        dim_reduction_target: str
+            Dimensionality reduction method used for source data.
+
+        source_components_ : numpy.ndarray, shape (n_pv, n_features)
+            Loadings of the source principal vectors ranked by similarity to the
+            target. Components are in the row.
+
+        source_explained_variance_ratio_: numpy.ndarray, shape (n_pv)
+            Explained variance of the source on each source principal vector.
+
+        target_components_ : numpy.ndarray, shape (n_pv, n_features)
+            Loadings of the target principal vectors ranked by similarity to the
+            source. Components are in the row.
+
+        target_explained_variance_ratio_: numpy.ndarray, shape (n_pv)
+            Explained variance of the target on each target principal vector.
+
+        cosine_similarity_matrix_: numpy.ndarray, shape (n_pv, n_pv)
+            Scalar product between the source and the target principal vectors. Source
+            principal vectors are in the rows while target's are in the columns. If
+            the domain adaptation is sensible, a diagonal matrix should be obtained.
     """
 
     def __init__(self, n_factors,n_pv,
@@ -251,22 +258,26 @@ class PVComputation:
                 dim_reduction_target=None,
                 project_on=0):
         """
-        Parameters
-        -------
-        n_factors : int
-            Number of domain-specific factors to extract from the data (e.g. using PCA, ICA).
-        n_pv : int
-            Number of principal vectors to find from the independently computed factors.
-        dim_reduction : str, default to 'pca' 
-            Dimensionality reduction method for the source data,
-            i.e. 'pca', 'ica', 'nmf', 'fa', 'sparsepca', pls'.
-        dim_reduction_target : str, default to None 
-            Dimensionality reduction method for the target data,
-            i.e. 'pca', 'ica', 'nmf', 'fa', 'sparsepca', pls'. If None, set to dim_reduction.
-    	project_on: int or bool, default to 0
-    		Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means
-            both PVs.
+        Args:
+            n_factors : int
+                Number of domain-specific factors to extract from the data (e.g. using PCA, ICA).
+
+            n_pv : int
+                Number of principal vectors to find from the independently computed factors.
+
+            dim_reduction : str, default to 'pca' 
+                Dimensionality reduction method for the source data,
+                i.e. 'pca', 'ica', 'nmf', 'fa', 'sparsepca', pls'.
+
+            dim_reduction_target : str, default to None 
+                Dimensionality reduction method for the target data,
+                i.e. 'pca', 'ica', 'nmf', 'fa', 'sparsepca', pls'. If None, set to dim_reduction.
+
+            project_on: int or bool, default to 0
+                Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means
+                both PVs.
         """
+
         self.n_factors = n_factors
         self.n_pv = n_pv
         self.dim_reduction_method_source = dim_reduction
@@ -287,21 +298,23 @@ class PVComputation:
             return dim_reduction
 
     def fit(self, X_source, X_target, y_source=None):
+        """ Compute the common factors between two set of data.
+        IMPORTANT: Same genes have to be given for source and target, and in same order
+
+        Args:
+            X_source : np.ndarray, shape (n_components, n_genes)
+                Source dataset.
+
+            X_target : np.ndarray, shape (n_components, n_genes)
+                Target dataset.
+
+            y_source : np.ndarray, shape (n_components, 1) (optional, default to None)
+                Eventual output, in case one wants to give ouput (for instance PLS).
+
+        results:
+            self: returns an instance of self.
         """
-    	Compute the common factors between two set of data.
-    	IMPORTANT: Same genes have to be given for source and target, and in same order
-        Parameters
-        -------
-        X_source : np.ndarray, shape (n_components, n_genes)
-            Source dataset
-        X_target : np.ndarray, shape (n_components, n_genes)
-            Target dataset
-        y_source : np.ndarray, shape (n_components, 1) (optional, default to None)
-            Eventual output, in case one wants to give ouput (for instance PLS)
-        Return values
-        -------
-        self: returns an instance of self.
-        """
+
         # Compute factors independently for source and target. Orthogonalize the basis
         Ps = self.dim_reduction_source.fit(X_source, y_source).components_
         Ps = scipy.linalg.orth(Ps.transpose()).transpose()
@@ -321,19 +334,19 @@ class PVComputation:
         return self
 
     def compute_principal_vectors(self, source_factors, target_factors):
-        """
-    	Compute the principal vectors between the already computed set of domain-specific
+        """Compute the principal vectors between the already computed set of domain-specific
         factors, using approach presented in [1,2].
-    	IMPORTANT: Same genes have to be given for source and target, and in same order
-        Parameters
-        -------
-    	source_factors: np.ndarray, shape (n_components, n_genes)
-    		Source domain-specific factors.
-    	target_factors: np.ndarray, shape (n_components, n_genes)
-    		Target domain-specific factors.
-        Return values
-        -------
-        self: returns an instance of self.
+        IMPORTANT: Same genes have to be given for source and target, and in same order
+
+        Args:
+            source_factors: np.ndarray, shape (n_components, n_genes)
+                Source domain-specific factors.
+
+            target_factors: np.ndarray, shape (n_components, n_genes)
+                Target domain-specific factors.
+
+        results:
+            self: returns an instance of self.
         """
 
         # Find principal vectors using SVD
@@ -355,18 +368,18 @@ class PVComputation:
 
 
     def transform(self, X, project_on=None):
-        """
-    	Projects data onto principal vectors.
-        Parameters
-        -------
-        X : numpy.ndarray, shape (n_samples, n_genes)
-            Data to project.
-        project_on: int or bool, default to None
-            Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means
-            both PVs. If None, set to class instance value.
-    	Return values
-        -------
-        Projected data as a numpy.ndarray of shape (n_samples, n_factors)
+        """ Projects data onto principal vectors.
+        
+        Args:
+            X : numpy.ndarray, shape (n_samples, n_genes)
+                Data to project.
+
+            project_on: int or bool, default to None
+                Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means
+                both PVs. If None, set to class instance value.
+
+        results:
+            Projected data as a numpy.ndarray of shape (n_samples, n_factors).
         """
 
         project_on = project_on or self.project_on

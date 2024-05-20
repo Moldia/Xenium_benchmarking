@@ -15,16 +15,16 @@ from sklearn.metrics import mutual_info_score
 from sklearn.metrics import fowlkes_mallows_score
 
 def missegmentation_simulation(adata_sc_sub,missegmentation_percentage=0.1):
-     """ Simulate missegmentation using a reference single cell data in adata form. 
-   
-    Parameters:
-    adata_sc_sub (AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   
-    missegmentation_percentage (float): percentage of cells (%) that are presenting missegmentation
+    """ Simulate missegmentation using a reference single cell data in adata form. 
 
-    Returns:
-    adata_sc_sub(AnnData): AnnData object with the cells where missegmentation has been simulated according to input parameters
+    Args:
+        adata_sc_sub (AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   
+        missegmentation_percentage (float): percentage of cells (%) that are presenting missegmentation
 
-   """
+    results:
+        adata_sc_sub(AnnData): AnnData object with the cells where missegmentation has been simulated according to input parameters
+    """
+
     exp=adata_sc_sub.to_df()
     if missegmentation_percentage>0:
         cells_affected=int(exp.shape[0]*(missegmentation_percentage/100))
@@ -38,15 +38,15 @@ def missegmentation_simulation(adata_sc_sub,missegmentation_percentage=0.1):
 
 def noise_adder(adata_sc,percentage_of_noise=0.1):
     """ Add noise to a single cell data inputed according to input parameters 
-   
-    Parameters:
-    adata_sc (AnnData): AnnData object with the cells of the experiment before adding noise
-    percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
 
-    Returns:
-    adata_sc(AnnData): AnnData object with the cells where noise has been added
+    Args:
+        adata_sc (AnnData): AnnData object with the cells of the experiment before adding noise
+        percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
 
-   """
+    results:
+        adata_sc(AnnData): AnnData object with the cells where noise has been added
+    """
+
     noise_events=int(np.sum(adata_sc.X)*(percentage_of_noise/100))
     for i in range(0,noise_events):
         x=random.sample(range(0,adata_sc.X.shape[0]),1)
@@ -60,22 +60,21 @@ def subset_of_single_cell(adata_sc_sub,markers,random_markers_percentage=0,
                           reads_x_cell=None,number_of_markers=200,
                          n_reads_x_gene=40,percentage_of_noise=0.1,ms_percentage=0.1):
     """ Transform a single cell data to present spatial characteristics
-   
-    Parameters:
-    adata_sc_sub (AnnData): AnnData object with the cells obtained from single cell datasets before transforming them into spatial-like datasets  
-    markers (DataFrame): dataframe incluing the main markers identified per cluster per cluster
-    random_markers_percentage (float): percentage of non-marker genes included randomly in the genes selected for the panel
-    reads_x_cell=None
-    n_reads_x_gene (int,None): if int, final number of reads/cells required in the spatial-like datasets. If None, cells are not transformed
-    number_of_markers (int): total number of genes to be included in the simulated dataset.
-    n_reads_x_gene (int): final number of reads/gene required in the spatial-like datasets
-    percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
-    ms_percentage (float): percentage of cells (%) that are presenting missegmentation
 
-    Returns:
-    adata_sc(AnnData): AnnData object with the cells after transfroming them into spatial-like datasets
+    Args:
+        adata_sc_sub (AnnData): AnnData object with the cells obtained from single cell datasets before transforming them into spatial-like datasets  
+        markers (DataFrame): dataframe incluing the main markers identified per cluster per cluster
+        random_markers_percentage (float): percentage of non-marker genes included randomly in the genes selected for the panel
+        reads_x_cell=None
+        n_reads_x_gene (int,None): if int, final number of reads/cells required in the spatial-like datasets. If None, cells are not transformed
+        number_of_markers (int): total number of genes to be included in the simulated dataset.
+        n_reads_x_gene (int): final number of reads/gene required in the spatial-like datasets
+        percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
+        ms_percentage (float): percentage of cells (%) that are presenting missegmentation
 
-   """
+    results:
+        adata_sc(AnnData): AnnData object with the cells after transfroming them into spatial-like datasets
+    """
                              
     mk=[]
     number_of_markers_x_cluster=int(np.ceil(number_of_markers/markers.shape[1])+1)
@@ -111,14 +110,14 @@ def subset_of_single_cell(adata_sc_sub,markers,random_markers_percentage=0,
 
 def entropy(clustering):
     """ Compute entropy
-   
-    Parameters:
-    clustering (list): list of clusters assigned to cells
 
-    Returns:
-     entropy_value(float): entropy value computed.
+    Args:
+        clustering (list): list of clusters assigned to cells.
 
-   """
+    results:
+        entropy_value(float): entropy value computed.
+    """
+    
     _, counts = np.unique(clustering, return_counts=True)
     proportions = counts / len(clustering)
     entropy_value=-np.sum(proportions * np.log(proportions))
@@ -126,15 +125,15 @@ def entropy(clustering):
 
 def compute_vi(ground_truth, predicted):
     """ Compute variation of information for comparing two different clusterings
-   
-    Parameters:
-    ground_truth (list): list of reference clusters given to cells profiled
-    predicted (list): list of predicted/computed clusters for cells profiled
 
-    Returns:
-     vi_score(float): variation of information 
+    Args:
+        ground_truth (list): list of reference clusters given to cells profiled.
 
-   """    
+        predicted (list): list of predicted/computed clusters for cells profiled.
+
+    results:
+        vi_score(float): variation of information.
+    """    
     
     mi = mutual_info_score(ground_truth, predicted)
     h_gt = entropy(ground_truth)
@@ -146,33 +145,36 @@ def compute_vi(ground_truth, predicted):
 
 def compute_fmi(ground_truth, predicted):
     """ Compute fowlkes mallows index for two different clusterings
-   
-    Parameters:
-    ground_truth (list): list of reference clusters given to cells profiled
-    predicted (list): list of predicted/computed clusters for cells profiled
 
-    Returns:
-     fmi_score(float): fowlkes mallows index
+    Args:
+        ground_truth (list): list of reference clusters given to cells profiled.
 
-   """   
+        predicted (list): list of predicted/computed clusters for cells profiled.
+
+    results:
+        fmi_score(float): fowlkes mallows index
+    """ 
+
     fmi_score = fowlkes_mallows_score(ground_truth, predicted)
     return fmi_score
 
 
 
 def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
-     """ Redefine cell expression based on nuclei expression an quality of detected reads
-   
-    Parameters:
-    adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear
-    overlaps_nucleus(int): Keep reads overlapping nucleus only (1) or all (2)
-    qvmin(int): Define minimum quality (qv) of reads to keep in the analysis 
-   
-    Returns:
-    adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters
+    """ Redefine cell expression based on nuclei expression an quality of detected reads
 
-   """
-     if overlaps_nucleus==1:
+    Args:
+        adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.
+
+        overlaps_nucleus(int): Keep reads overlapping nucleus only (1) or all (2).
+
+        qvmin(int): Define minimum quality (qv) of reads to keep in the analysis. 
+
+    results:
+        adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters.
+    """
+
+    if overlaps_nucleus==1:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
     if overlaps_nucleus==0:
         subset1=adata1.uns['spots']
@@ -190,16 +192,16 @@ def keep_nuclei_and_quality(adata1,overlaps_nucleus=1,qvmin=20):
 # using a baseline, modify parameters one by one
 # making it into a function
 def allcombs(adata):
-     """ Simulate preprocessing workflows and extract results based on it
-   
-    Parameters:
-    adata (AnnData): AnnData object with the cells of the experiment 
-   
-    Returns:
-    allres(DataFrame): Clustering obtained with different preprocessing workflows
+    """ Simulate preprocessing workflows and extract results based on it
 
-   """
-     default={'nuc':1,'npcs':0,'neighs':16,'qvs':0,'scale':True,'hvgs':False,'ts':100,'norm':True,'lg':True} 
+    Args:
+        adata (AnnData): AnnData object with the cells of the experiment.
+
+    results:
+        allres(DataFrame): Clustering obtained with different preprocessing workflows.
+    """
+
+    default={'nuc':1,'npcs':0,'neighs':16,'qvs':0,'scale':True,'hvgs':False,'ts':100,'norm':True,'lg':True} 
     try:
         del allres
     except:
@@ -264,33 +266,42 @@ def allcombs(adata):
 
 
 def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc=0,nuc=1,scale=False,hvg=False,default=False,total_clusters=30,default_resol=1.6,logstatus=True,normstatus=True):
+    """ preprocess and cluster cells in an Anndata object given some input parameters
 
-         """ preprocess and cluster cells in an Anndata object given some input parameters
-   
-    Parameters:
-    adata(AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   
-    target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size
-    mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters
-    mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters
-    neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors()
-    npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors()
-    nuc(int): wether to use only nuclear reads (1) or all reads (0)
-    scale(boolean): whether to scale the data or not
-    hvg(boolean): whether to select highly variable genes for further processing or not
-    default(boolean): whether the run is the original one or not
-    total_clusters (int): number of clusters to obtain in the process of clustering (+-2)
-    default_resol(float): clustering resolution to use as a default when clustering
-    logstatus(boolean): Whether to log-transforms cells.
-    normstatus(boolean): Whether to normalize based cells or not
+    Args:
+        adata(AnnData): AnnData object with the cells of the experiment before simulating the missegmentation.
 
-    Returns:
-    adata(AnnData): AnnData object after preprocessing and clustering
+        target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size.
 
-   """
+        mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters.
+
+        mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters.
+
+        neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors().
+
+        npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors().
+
+        nuc(int): wether to use only nuclear reads (1) or all reads (0).
+
+        scale(boolean): whether to scale the data or not.
+
+        hvg(boolean): whether to select highly variable genes for further processing or not.
+
+        default(boolean): whether the run is the original one or not.
+
+        total_clusters (int): number of clusters to obtain in the process of clustering (+-2).
+
+        default_resol(float): clustering resolution to use as a default when clustering.
+
+        logstatus(boolean): Whether to log-transforms cells.
+
+        normstatus(boolean): Whether to normalize based cells or not.
+
+    results:
+        adata(AnnData): AnnData object after preprocessing and clustering.
+    """
      
-     
-     
-     adata.layers['raw']=adata.X.copy()
+    adata.layers['raw']=adata.X.copy()
     sc.pp.filter_cells(adata,min_counts=mincounts)
     sc.pp.filter_cells(adata,min_genes=mingenes)
     adata.raw=adata
@@ -357,17 +368,17 @@ def main_preprocessing(adata,target_sum=100,mincounts=10,mingenes=3,neigh=15,npc
 
 def allcombs_simulated(adata,default_key='class'):
     """ Simulate preprocessing workflows and extract results based on it for simulated data
-   
-    Parameters:
-    adata (AnnData): AnnData object with the cells of the experiment 
-    default_key(str): name of the column in adata.obs where the reference cell types/clusters are stored
-    Returns:
-    allres(DataFrame): Clustering obtained with different preprocessing workflows
 
-   """
+    Args:
+        adata (AnnData): AnnData object with the cells of the experiment.
+
+        default_key(str): name of the column in adata.obs where the reference cell types/clusters are stored.
+    
+    results:
+    allres(DataFrame): Clustering obtained with different preprocessing workflows.
+    """
      
-     
-     default={'nuc':1,'npcs':0,'neighs':12,'qvs':0,'scale':False,'hvgs':False,'ts':1000000}# default is never done
+    default={'nuc':1,'npcs':0,'neighs':12,'qvs':0,'scale':False,'hvgs':False,'ts':1000000}# default is never done
     try:
         del allres
     except:
