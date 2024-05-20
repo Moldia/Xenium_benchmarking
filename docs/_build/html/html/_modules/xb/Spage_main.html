@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xb.Spage_main &mdash; test 1.0.0. documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=58f5e731"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            test
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../xb.html">xb package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">test</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">xb.Spage_main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for xb.Spage_main</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; SpaGE [1]</span>
+<span class="sd">@author: Tamim Abdelaal</span>
+<span class="sd">This function integrates two single-cell datasets, spatial and scRNA-seq, and </span>
+<span class="sd">enhance the spatial data by predicting the expression of the spatially </span>
+<span class="sd">unmeasured genes from the scRNA-seq data.</span>
+<span class="sd">The integration is performed using the domain adaption method PRECISE [2]</span>
+<span class="sd">	</span>
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">    [1] Abdelaal T., Mourragui S., Mahfouz A., Reiders M.J.T. (2020)</span>
+<span class="sd">    SpaGE: Spatial Gene Enhancement using scRNA-seq</span>
+<span class="sd">    [2] Mourragui S., Loog M., Reinders M.J.T., Wessels L.F.A. (2019)</span>
+<span class="sd">    PRECISE: A domain adaptation approach to transfer predictors of drug response</span>
+<span class="sd">    from pre-clinical models to tumors</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="kn">import</span> <span class="n">NearestNeighbors</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<div class="viewcode-block" id="SpaGE">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.SpaGE">[docs]</a>
+<span class="k">def</span> <span class="nf">SpaGE</span><span class="p">(</span><span class="n">Spatial_data</span><span class="p">,</span><span class="n">RNA_data</span><span class="p">,</span><span class="n">n_pv</span><span class="p">,</span><span class="n">genes_to_predict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        @author: Tamim Abdelaal</span>
+<span class="sd">        This function integrates two single-cell datasets, spatial and scRNA-seq, </span>
+<span class="sd">        and enhance the spatial data by predicting the expression of the spatially </span>
+<span class="sd">        unmeasured genes from the scRNA-seq data.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:  </span>
+<span class="sd">            Spatial_data : Dataframe</span>
+<span class="sd">                Normalized Spatial data matrix (cells X genes).</span>
+
+<span class="sd">            RNA_data : Dataframe</span>
+<span class="sd">                Normalized scRNA-seq data matrix (cells X genes).</span>
+
+<span class="sd">            n_pv : int</span>
+<span class="sd">                Number of principal vectors to find from the independently computed</span>
+<span class="sd">                principal components, and used to align both datasets. This should</span>
+<span class="sd">                be &lt;= number of shared genes between the two datasets.</span>
+
+<span class="sd">            genes_to_predict : str array </span>
+<span class="sd">                list of gene names missing from the spatial data, to be predicted </span>
+<span class="sd">                from the scRNA-seq data. Default is the set of different genes </span>
+<span class="sd">                (columns) between scRNA-seq and spatial data.</span>
+<span class="sd">            </span>
+<span class="sd">        results:  </span>
+<span class="sd">            Imp_Genes: Dataframe</span>
+<span class="sd">                Matrix containing the predicted gene expressions for the spatial </span>
+<span class="sd">                cells. Rows are equal to the number of spatial data rows (cells), </span>
+<span class="sd">                and columns are equal to genes_to_predict,  .</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">genes_to_predict</span> <span class="ow">is</span> <span class="n">SpaGE</span><span class="o">.</span><span class="vm">__defaults__</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">genes_to_predict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">RNA_data</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span><span class="n">Spatial_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        
+    <span class="n">RNA_data_scaled</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">st</span><span class="o">.</span><span class="n">zscore</span><span class="p">(</span><span class="n">RNA_data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                                   <span class="n">index</span> <span class="o">=</span> <span class="n">RNA_data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">RNA_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">Spatial_data_scaled</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">st</span><span class="o">.</span><span class="n">zscore</span><span class="p">(</span><span class="n">Spatial_data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                                   <span class="n">index</span> <span class="o">=</span> <span class="n">Spatial_data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">Spatial_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">Common_data</span> <span class="o">=</span> <span class="n">RNA_data_scaled</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">Spatial_data_scaled</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span><span class="n">RNA_data_scaled</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>
+
+    <span class="n">Y_train</span> <span class="o">=</span> <span class="n">RNA_data</span><span class="p">[</span><span class="n">genes_to_predict</span><span class="p">]</span>
+    
+    <span class="n">Imp_Genes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Spatial_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="n">genes_to_predict</span><span class="p">))),</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">genes_to_predict</span><span class="p">)</span>
+    
+    <span class="n">pv_Spatial_RNA</span> <span class="o">=</span> <span class="n">PVComputation</span><span class="p">(</span>
+            <span class="n">n_factors</span> <span class="o">=</span> <span class="n">n_pv</span><span class="p">,</span>
+            <span class="n">n_pv</span> <span class="o">=</span> <span class="n">n_pv</span><span class="p">,</span>
+            <span class="n">dim_reduction</span> <span class="o">=</span> <span class="s1">&#39;pca&#39;</span><span class="p">,</span>
+            <span class="n">dim_reduction_target</span> <span class="o">=</span> <span class="s1">&#39;pca&#39;</span>
+    <span class="p">)</span>
+    
+    <span class="n">pv_Spatial_RNA</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Common_data</span><span class="p">,</span><span class="n">Spatial_data_scaled</span><span class="p">[</span><span class="n">Common_data</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span>
+    
+    <span class="n">S</span> <span class="o">=</span> <span class="n">pv_Spatial_RNA</span><span class="o">.</span><span class="n">source_components_</span><span class="o">.</span><span class="n">T</span>
+        
+    <span class="n">Effective_n_pv</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">pv_Spatial_RNA</span><span class="o">.</span><span class="n">cosine_similarity_matrix_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.3</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">S</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="n">Effective_n_pv</span><span class="p">]</span>
+    
+    <span class="n">Common_data_projected</span> <span class="o">=</span> <span class="n">Common_data</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+    <span class="n">Spatial_data_projected</span> <span class="o">=</span> <span class="n">Spatial_data_scaled</span><span class="p">[</span><span class="n">Common_data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+        
+    <span class="n">nbrs</span> <span class="o">=</span> <span class="n">NearestNeighbors</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                            <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;cosine&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Common_data_projected</span><span class="p">)</span>
+    <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="n">Spatial_data_projected</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Spatial_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+    
+        <span class="n">weights</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,:][</span><span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,:][</span><span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">/</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">Imp_Genes</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span><span class="n">Y_train</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">j</span><span class="p">,:][</span><span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">]])</span>
+        
+    <span class="k">return</span> <span class="n">Imp_Genes</span></div>
+
+
+<span class="sd">&quot;&quot;&quot; Dimensionality Reduction</span>
+<span class="sd">@author: Soufiane Mourragui</span>
+<span class="sd">This module extracts the domain-specific factors from the high-dimensional omics</span>
+<span class="sd">dataset. Several methods are here implemented and they can be directly</span>
+<span class="sd">called from string name in main method method. All the methods</span>
+<span class="sd">use scikit-learn implementation.</span>
+<span class="sd">Notes</span>
+<span class="sd">-------</span>
+<span class="sd">	-</span>
+<span class="sd">	</span>
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">	[1] Pedregosa, Fabian, et al. (2011) Scikit-learn: Machine learning in Python.</span>
+<span class="sd">	Journal of Machine Learning Research</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.decomposition</span> <span class="kn">import</span> <span class="n">PCA</span><span class="p">,</span> <span class="n">FastICA</span><span class="p">,</span> <span class="n">FactorAnalysis</span><span class="p">,</span> <span class="n">NMF</span><span class="p">,</span> <span class="n">SparsePCA</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_decomposition</span> <span class="kn">import</span> <span class="n">PLSRegression</span>
+
+
+<div class="viewcode-block" id="process_dim_reduction">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.process_dim_reduction">[docs]</a>
+<span class="k">def</span> <span class="nf">process_dim_reduction</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;pca&#39;</span><span class="p">,</span> <span class="n">n_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Default linear dimensionality reduction method. For each method, return a</span>
+<span class="sd">    BaseEstimator instance corresponding to the method given as input.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        method: str, default to &#39;pca&#39;</span>
+<span class="sd">            Method used for dimensionality reduction.</span>
+<span class="sd">            Implemented: &#39;pca&#39;, &#39;ica&#39;, &#39;fa&#39; (Factor Analysis), </span>
+<span class="sd">            &#39;nmf&#39; (Non-negative matrix factorisation), &#39;sparsepca&#39; (Sparse PCA).</span>
+<span class="sd">        </span>
+<span class="sd">        n_dim: int, default to 10</span>
+<span class="sd">            Number of domain-specific factors to compute.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        Classifier, i.e. BaseEstimator instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;pca&#39;</span><span class="p">:</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_dim</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ica&#39;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ICA&#39;</span><span class="p">)</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">FastICA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_dim</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;fa&#39;</span><span class="p">:</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">FactorAnalysis</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_dim</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;nmf&#39;</span><span class="p">:</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">NMF</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_dim</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;sparsepca&#39;</span><span class="p">:</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">SparsePCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_dim</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;pls&#39;</span><span class="p">:</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">PLS</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_dim</span><span class="p">)</span>
+		
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is not an implemented method&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">clf</span></div>
+
+
+
+<div class="viewcode-block" id="PLS">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PLS">[docs]</a>
+<span class="k">class</span> <span class="nc">PLS</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implement PLS to make it compliant with the other dimensionality</span>
+<span class="sd">    reduction methodology.</span>
+<span class="sd">    (Simple class rewritting).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clf</span> <span class="o">=</span> <span class="n">PLSRegression</span><span class="p">(</span><span class="n">n_components</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PLS.get_components_">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PLS.get_components_">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_components_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">x_weights_</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="PLS.set_components_">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PLS.set_components_">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_components_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="n">components_</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">get_components_</span><span class="p">,</span> <span class="n">set_components_</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PLS.fit">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PLS.fit">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="PLS.transform">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PLS.transform">[docs]</a>
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PLS.predict">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PLS.predict">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+</div>
+
+<span class="w">    </span>
+<span class="w">    </span>
+<span class="w">    </span>
+<span class="sd">&quot;&quot;&quot; Principal Vectors</span>
+<span class="sd">@author: Soufiane Mourragui</span>
+<span class="sd">This module computes the principal vectors from two datasets, i.e.:</span>
+<span class="sd">- perform linear dimensionality reduction independently for both dataset, resulting</span>
+<span class="sd">in set of domain-specific factors.</span>
+<span class="sd">- find the common factors using principal vectors [1]</span>
+<span class="sd">This result in set of pairs of vectors. Each pair has one vector from the source and one</span>
+<span class="sd">from the target. For each pair, a similarity score (cosine similarity) can be computed</span>
+<span class="sd">between the principal vectors and the pairs are naturally ordered by decreasing order</span>
+<span class="sd">of this similarity measure.</span>
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+<span class="sd">    Examples are given in the vignettes.</span>
+<span class="sd">Notes</span>
+<span class="sd">-------</span>
+<span class="sd">	Examples are given in the vignette</span>
+<span class="sd">	</span>
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">	[1] Golub, G.H. and Van Loan, C.F., 2012. &quot;Matrix computations&quot; (Vol. 3). JHU Press.</span>
+<span class="sd">	[2] Mourragui, S., Loog, M., Reinders, M.J.T., Wessels, L.F.A. (2019)</span>
+<span class="sd">    PRECISE: A domain adaptation approach to transfer predictors of drug response</span>
+<span class="sd">    from pre-clinical models to tumors</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">normalize</span>
+
+
+<div class="viewcode-block" id="PVComputation">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PVComputation">[docs]</a>
+<span class="k">class</span> <span class="nc">PVComputation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        n_factors: int</span>
+<span class="sd">            Number of domain-specific factors to compute.</span>
+
+<span class="sd">        n_pv: int</span>
+<span class="sd">            Number of principal vectors.</span>
+
+<span class="sd">        dim_reduction_method_source: str</span>
+<span class="sd">            Dimensionality reduction method used for source data.</span>
+
+<span class="sd">        dim_reduction_target: str</span>
+<span class="sd">            Dimensionality reduction method used for source data.</span>
+
+<span class="sd">        source_components_ : numpy.ndarray, shape (n_pv, n_features)</span>
+<span class="sd">            Loadings of the source principal vectors ranked by similarity to the</span>
+<span class="sd">            target. Components are in the row.</span>
+
+<span class="sd">        source_explained_variance_ratio_: numpy.ndarray, shape (n_pv)</span>
+<span class="sd">            Explained variance of the source on each source principal vector.</span>
+
+<span class="sd">        target_components_ : numpy.ndarray, shape (n_pv, n_features)</span>
+<span class="sd">            Loadings of the target principal vectors ranked by similarity to the</span>
+<span class="sd">            source. Components are in the row.</span>
+
+<span class="sd">        target_explained_variance_ratio_: numpy.ndarray, shape (n_pv)</span>
+<span class="sd">            Explained variance of the target on each target principal vector.</span>
+
+<span class="sd">        cosine_similarity_matrix_: numpy.ndarray, shape (n_pv, n_pv)</span>
+<span class="sd">            Scalar product between the source and the target principal vectors. Source</span>
+<span class="sd">            principal vectors are in the rows while target&#39;s are in the columns. If</span>
+<span class="sd">            the domain adaptation is sensible, a diagonal matrix should be obtained.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_factors</span><span class="p">,</span><span class="n">n_pv</span><span class="p">,</span>
+                <span class="n">dim_reduction</span><span class="o">=</span><span class="s1">&#39;pca&#39;</span><span class="p">,</span>
+                <span class="n">dim_reduction_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">project_on</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            n_factors : int</span>
+<span class="sd">                Number of domain-specific factors to extract from the data (e.g. using PCA, ICA).</span>
+
+<span class="sd">            n_pv : int</span>
+<span class="sd">                Number of principal vectors to find from the independently computed factors.</span>
+
+<span class="sd">            dim_reduction : str, default to &#39;pca&#39; </span>
+<span class="sd">                Dimensionality reduction method for the source data,</span>
+<span class="sd">                i.e. &#39;pca&#39;, &#39;ica&#39;, &#39;nmf&#39;, &#39;fa&#39;, &#39;sparsepca&#39;, pls&#39;.</span>
+
+<span class="sd">            dim_reduction_target : str, default to None </span>
+<span class="sd">                Dimensionality reduction method for the target data,</span>
+<span class="sd">                i.e. &#39;pca&#39;, &#39;ica&#39;, &#39;nmf&#39;, &#39;fa&#39;, &#39;sparsepca&#39;, pls&#39;. If None, set to dim_reduction.</span>
+
+<span class="sd">            project_on: int or bool, default to 0</span>
+<span class="sd">                Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means</span>
+<span class="sd">                both PVs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_factors</span> <span class="o">=</span> <span class="n">n_factors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_pv</span> <span class="o">=</span> <span class="n">n_pv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_method_source</span> <span class="o">=</span> <span class="n">dim_reduction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_method_target</span> <span class="o">=</span> <span class="n">dim_reduction_target</span> <span class="ow">or</span> <span class="n">dim_reduction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_dim_reduction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_method_source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_dim_reduction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_method_target</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_explained_variance_ratio_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_explained_variance_ratio_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosine_similarity_matrix_</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_process_dim_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim_reduction</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dim_reduction</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">process_dim_reduction</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">dim_reduction</span><span class="p">,</span> <span class="n">n_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_factors</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dim_reduction</span>
+
+<div class="viewcode-block" id="PVComputation.fit">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PVComputation.fit">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_source</span><span class="p">,</span> <span class="n">X_target</span><span class="p">,</span> <span class="n">y_source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Compute the common factors between two set of data.</span>
+<span class="sd">        IMPORTANT: Same genes have to be given for source and target, and in same order</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            X_source : np.ndarray, shape (n_components, n_genes)</span>
+<span class="sd">                Source dataset.</span>
+
+<span class="sd">            X_target : np.ndarray, shape (n_components, n_genes)</span>
+<span class="sd">                Target dataset.</span>
+
+<span class="sd">            y_source : np.ndarray, shape (n_components, 1) (optional, default to None)</span>
+<span class="sd">                Eventual output, in case one wants to give ouput (for instance PLS).</span>
+
+<span class="sd">        results:</span>
+<span class="sd">            self: returns an instance of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Compute factors independently for source and target. Orthogonalize the basis</span>
+        <span class="n">Ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_source</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_source</span><span class="p">,</span> <span class="n">y_source</span><span class="p">)</span><span class="o">.</span><span class="n">components_</span>
+        <span class="n">Ps</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">orth</span><span class="p">(</span><span class="n">Ps</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="n">Pt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_reduction_target</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_target</span><span class="p">,</span> <span class="n">y_source</span><span class="p">)</span><span class="o">.</span><span class="n">components_</span>
+        <span class="n">Pt</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">orth</span><span class="p">(</span><span class="n">Pt</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="c1"># Compute the principal factors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_principal_vectors</span><span class="p">(</span><span class="n">Ps</span><span class="p">,</span> <span class="n">Pt</span><span class="p">)</span>
+
+        <span class="c1"># Compute variance explained</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_explained_variance_ratio_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X_source</span><span class="o">.</span><span class="n">transpose</span><span class="p">()),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span>\
+                                                <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">X_source</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_explained_variance_ratio_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X_target</span><span class="o">.</span><span class="n">transpose</span><span class="p">()),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span>\
+                                                <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">X_target</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="PVComputation.compute_principal_vectors">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PVComputation.compute_principal_vectors">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_principal_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_factors</span><span class="p">,</span> <span class="n">target_factors</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the principal vectors between the already computed set of domain-specific</span>
+<span class="sd">        factors, using approach presented in [1,2].</span>
+<span class="sd">        IMPORTANT: Same genes have to be given for source and target, and in same order</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            source_factors: np.ndarray, shape (n_components, n_genes)</span>
+<span class="sd">                Source domain-specific factors.</span>
+
+<span class="sd">            target_factors: np.ndarray, shape (n_components, n_genes)</span>
+<span class="sd">                Target domain-specific factors.</span>
+
+<span class="sd">        results:</span>
+<span class="sd">            self: returns an instance of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Find principal vectors using SVD</span>
+        <span class="n">u</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">source_factors</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">target_factors</span><span class="o">.</span><span class="n">transpose</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">source_factors</span><span class="p">)[:</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pv</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">target_factors</span><span class="p">)[:</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pv</span><span class="p">]</span>
+        <span class="c1"># Normalize to make sure that vectors are unitary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Compute cosine similarity matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_cosine_similarity_matrix_</span> <span class="o">=</span> <span class="n">source_factors</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">target_factors</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosine_similarity_matrix_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+
+        <span class="c1"># Compute angles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angles_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cosine_similarity_matrix_</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+<div class="viewcode-block" id="PVComputation.transform">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.PVComputation.transform">[docs]</a>
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">project_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Projects data onto principal vectors.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            X : numpy.ndarray, shape (n_samples, n_genes)</span>
+<span class="sd">                Data to project.</span>
+
+<span class="sd">            project_on: int or bool, default to None</span>
+<span class="sd">                Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means</span>
+<span class="sd">                both PVs. If None, set to class instance value.</span>
+
+<span class="sd">        results:</span>
+<span class="sd">            Projected data as a numpy.ndarray of shape (n_samples, n_factors).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">project_on</span> <span class="o">=</span> <span class="n">project_on</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_on</span>
+
+        <span class="c1"># Project on source</span>
+        <span class="k">if</span> <span class="n">project_on</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+
+        <span class="c1"># Project on target</span>
+        <span class="k">elif</span> <span class="n">project_on</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+
+        <span class="c1"># Project on both</span>
+        <span class="k">elif</span> <span class="n">project_on</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">source_components_</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_components_</span><span class="o">.</span><span class="n">transpose</span><span class="p">()]))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;project_on should be 0 (source), -1 (target) or 1 (both). </span><span class="si">%s</span><span class="s1"> not correct value&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">project_on</span><span class="p">))</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="leave_one_out_validation">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.leave_one_out_validation">[docs]</a>
+<span class="k">def</span> <span class="nf">leave_one_out_validation</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sc_adata</span><span class="p">,</span><span class="n">genes</span><span class="p">:</span><span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Function to validate the imputation of genes using SpaGe&#39;&#39;&#39;</span>
+    <span class="n">RNA_data</span><span class="o">=</span><span class="n">sc_adata</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="n">RNA_meta</span><span class="o">=</span><span class="n">sc_adata</span><span class="o">.</span><span class="n">obs</span>
+    <span class="n">spatial_data</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="n">spatial_meta</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span>
+    
+    <span class="n">Correlations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">genes</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;dark_background&#39;</span><span class="p">)</span>
+    <span class="n">spatialcoords</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">])</span>
+    <span class="n">allimp</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">genes</span><span class="p">:</span>
+        <span class="n">Imp_Genes</span> <span class="o">=</span> <span class="n">SpaGE</span><span class="p">(</span><span class="n">spatial_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span><span class="n">RNA_data</span><span class="p">,</span><span class="n">n_pv</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                               <span class="n">genes_to_predict</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">Correlations</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">spearmanr</span><span class="p">(</span><span class="n">spatial_data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">Imp_Genes</span><span class="p">[</span><span class="n">i</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">spatial_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">cmap</span><span class="p">[</span><span class="n">cmap</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span><span class="mi">99</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span><span class="mi">99</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">spatialcoords</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">spatialcoords</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="n">s</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Measured &#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">Imp_Genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">cmap</span><span class="p">[</span><span class="n">cmap</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span><span class="mi">99</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span><span class="mi">99</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">spatialcoords</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">spatialcoords</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="n">s</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Predicted &#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="n">allimp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Imp_Genes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">allimp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gene_imputation">
+<a class="viewcode-back" href="../../xb.html#xb.Spage_main.gene_imputation">[docs]</a>
+<span class="k">def</span> <span class="nf">gene_imputation</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sc_adata</span><span class="p">,</span><span class="n">new_genes</span><span class="p">:</span><span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Function to impute genes using SpaGe&#39;&#39;&#39;</span>
+    <span class="n">RNA_data</span><span class="o">=</span><span class="n">sc_adata</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="n">RNA_meta</span><span class="o">=</span><span class="n">sc_adata</span><span class="o">.</span><span class="n">obs</span>
+    <span class="n">spatial_data</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="n">spatial_meta</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span>
+    <span class="n">Correlations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">new_genes</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;dark_background&#39;</span><span class="p">)</span>
+    <span class="n">spatialcoords</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">])</span>
+    <span class="n">Imp_New_Genes</span> <span class="o">=</span> <span class="n">SpaGE</span><span class="p">(</span><span class="n">spatial_data</span><span class="p">,</span><span class="n">RNA_data</span><span class="p">,</span><span class="n">n_pv</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">genes_to_predict</span> <span class="o">=</span> <span class="n">new_genes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Imp_New_Genes</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, nima rafati.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

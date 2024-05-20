@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xb.calculating &mdash; test 1.0.0. documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=58f5e731"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            test
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../xb.html">xb package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">test</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">xb.calculating</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for xb.calculating</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">mmread</span>
+<span class="kn">import</span> <span class="nn">tifffile</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">ConvexHull</span><span class="p">,</span> <span class="n">convex_hull_plot_2d</span>
+<span class="kn">from</span> <span class="nn">anndata</span> <span class="kn">import</span> <span class="n">AnnData</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mutual_info_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">fowlkes_mallows_score</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">normalized_mutual_info_score</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">Point</span><span class="p">,</span> <span class="n">Polygon</span>
+
+<div class="viewcode-block" id="dist_nuc">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.dist_nuc">[docs]</a>
+<span class="k">def</span> <span class="nf">dist_nuc</span><span class="p">(</span><span class="n">reads_ctdsub</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the median distance to the nuclei the edges of each cell, for all cells profiled</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        reads_ctdsub (DataFrame): Dataframe containing the information of the transcripts profiled, incuding their location in &#39;x_location&#39; and &#39;y_location&#39;, as well as the cell they are assigned to, in &#39;cell_id&#39;.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        median_dist(float): Median distance of cell edges for all cells profiled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">ConvexHull</span><span class="p">,</span> <span class="n">convex_hull_plot_2d</span>
+    <span class="n">allds</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">g</span><span class="p">,</span><span class="n">n</span> <span class="ow">in</span> <span class="n">reads_ctdsub</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;cell_id&#39;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">hull</span> <span class="o">=</span> <span class="n">ConvexHull</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;x_location&#39;</span><span class="p">,</span><span class="s1">&#39;y_location&#39;</span><span class="p">]]))</span>
+            <span class="n">allds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">hull</span><span class="o">.</span><span class="n">vertices</span><span class="p">][</span><span class="s1">&#39;distance&#39;</span><span class="p">]))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>
+    <span class="n">median_dist</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">allds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">median_dist</span></div>
+
+
+<div class="viewcode-block" id="hex_to_rgb">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.hex_to_rgb">[docs]</a>
+<span class="k">def</span> <span class="nf">hex_to_rgb</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Transform hex to rgb</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value (str): hex code to be transform (i.e &#39;#h4a4a2&#39;).</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        rgb_value(tuple): Rgb value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+    <span class="n">lv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">rgb_value</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">lv</span> <span class="o">//</span> <span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lv</span><span class="p">,</span> <span class="n">lv</span> <span class="o">//</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">rgb_value</span></div>
+
+    
+<div class="viewcode-block" id="distance_calc">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.distance_calc">[docs]</a>
+<span class="k">def</span> <span class="nf">distance_calc</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate distance between two points</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x1(float): x coordinate of the first point.</span>
+
+<span class="sd">        y1(float): y coordinate of the first point.</span>
+
+<span class="sd">        x2(float): x coordinate of the second point.</span>
+
+<span class="sd">        y2(float): y coordinate of the second point.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        distance (float): distance between the two points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="p">((</span><span class="n">x1</span><span class="o">-</span><span class="n">x2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="p">((</span><span class="n">y1</span><span class="o">-</span><span class="n">y2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dispersion">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.dispersion">[docs]</a>
+<span class="k">def</span> <span class="nf">dispersion</span><span class="p">(</span><span class="n">reads_original</span><span class="p">,</span><span class="n">adata1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate the distance between each read and its assigned cell</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        reads_original(DataFrame): information of all profiled reads.</span>
+
+<span class="sd">        adata1(AnnData): object with the expression and metadata of cells profiled, including spatial position.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">reads_assigned</span><span class="o">=</span><span class="n">reads_original</span>
+    <span class="n">cells_metadata</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span>
+    <span class="n">cells_metadata_filt</span><span class="o">=</span><span class="n">cells_metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">cells_metadata</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]),:]</span>  
+    <span class="n">reads_assigned</span><span class="o">=</span><span class="n">reads_assigned</span><span class="p">[</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">cells_metadata_filt</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">])]</span>
+    <span class="n">dictx</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cells_metadata_filt</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">],</span><span class="n">cells_metadata_filt</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">]))</span>
+    <span class="n">dicty</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cells_metadata_filt</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">],</span><span class="n">cells_metadata_filt</span><span class="p">[</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">]))</span>
+    <span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;x_cell&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dictx</span><span class="p">))</span>
+    <span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;y_cell&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dicty</span><span class="p">))</span>
+    <span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;x_location&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;x_cell&#39;</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="p">((</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;y_location&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">reads_assigned</span><span class="p">[</span><span class="s1">&#39;y_cell&#39;</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">reads_assigned</span></div>
+
+
+<div class="viewcode-block" id="entropy">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.entropy">[docs]</a>
+<span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="n">clustering</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute entropy</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clustering (list): list of clusters assigned to cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        entropy_value(float): entropy value computed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">clustering</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">proportions</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">clustering</span><span class="p">)</span>
+    <span class="n">entropy_value</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">proportions</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">proportions</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">entropy_value</span></div>
+
+
+<div class="viewcode-block" id="compute_vi">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.compute_vi">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_vi</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute variation of information for comparing two different clusterings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ground_truth (list): list of reference clusters given to cells profiled.</span>
+
+<span class="sd">        predicted (list): list of predicted/computed clusters for cells profiled.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        vi_score(float): variation of information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    
+    <span class="n">mi</span> <span class="o">=</span> <span class="n">mutual_info_score</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">)</span>
+    <span class="n">h_gt</span> <span class="o">=</span> <span class="n">entropy</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">)</span>
+    <span class="n">h_pred</span> <span class="o">=</span> <span class="n">entropy</span><span class="p">(</span><span class="n">predicted</span><span class="p">)</span>
+    <span class="n">vi_score</span> <span class="o">=</span> <span class="n">h_gt</span> <span class="o">+</span> <span class="n">h_pred</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">mi</span>
+    <span class="k">return</span> <span class="n">vi_score</span></div>
+
+
+
+
+<div class="viewcode-block" id="compute_fmi">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.compute_fmi">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_fmi</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute fowlkes mallows index for two different clusterings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ground_truth (list): list of reference clusters given to cells profiled.</span>
+
+<span class="sd">        predicted (list): list of predicted/computed clusters for cells profiled.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        fmi_score(float): fowlkes mallows index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>  
+
+    <span class="n">fmi_score</span> <span class="o">=</span> <span class="n">fowlkes_mallows_score</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fmi_score</span></div>
+
+    
+
+<div class="viewcode-block" id="compute_nmi">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.compute_nmi">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_nmi</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute normalized mutual information score for two different clusterings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ground_truth (list): list of reference clusters given to cells profiled.</span>
+
+<span class="sd">        predicted (list): list of predicted/computed clusters for cells profiled.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        nmi_score(float): normalized mutual information.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+
+    <span class="n">nmi_score</span> <span class="o">=</span> <span class="n">normalized_mutual_info_score</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nmi_score</span></div>
+
+
+
+
+<div class="viewcode-block" id="domainassign">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.domainassign">[docs]</a>
+<span class="k">def</span> <span class="nf">domainassign</span><span class="p">(</span><span class="n">plsin</span><span class="p">,</span><span class="n">adatadom</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Assign cells to domains based on predefined polygons</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        plsin (DataFrame): Information of polygons defining domains.</span>
+
+<span class="sd">        adatadom (AnnData): cells profiled spatially in an AnnData object and with information of their spatial location in [&#39;x_centroid&#39;] and [&#39;y_centroid&#39;].</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+    
+    <span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;region_annotation&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">plsin</span><span class="p">[</span><span class="s1">&#39;region_annotation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">plsub</span><span class="o">=</span><span class="n">plsin</span><span class="p">[</span><span class="n">plsin</span><span class="p">[</span><span class="s1">&#39;region_annotation&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">sel</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">plsub</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">plsub</span><span class="p">[[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">]])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">coord</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">poli</span><span class="o">=</span><span class="n">Polygon</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">coord</span><span class="p">)</span> <span class="c1">#create lists of x and y values</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span><span class="n">ys</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span> 
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                <span class="n">pnt</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">],</span><span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">pnt</span><span class="o">.</span><span class="n">within</span><span class="p">(</span><span class="n">poli</span><span class="p">)</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+                    <span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;region_annotation&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">sel</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">],</span><span class="n">adatadom</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">],</span><span class="n">s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> </div>
+
+
+
+<div class="viewcode-block" id="negative_marker_purity_coexpression">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.negative_marker_purity_coexpression">[docs]</a>
+<span class="k">def</span> <span class="nf">negative_marker_purity_coexpression</span><span class="p">(</span><span class="n">adata_sp</span><span class="p">:</span> <span class="n">AnnData</span><span class="p">,</span> <span class="n">adata_sc</span><span class="p">:</span> <span class="n">AnnData</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">,</span> <span class="n">pipeline_output</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">minexp</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Negative marker purity aims to measure read leakeage between cells in spatial datasets. </span>
+
+<span class="sd">    For this, we calculate the increase in reads assigned in spatial datasets to pairs of genes-celltyes with no/very low expression in scRNAseq</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata_sp : AnnData; Annotated ``AnnData`` object with counts from spatial data.</span>
+
+<span class="sd">        adata_sc : AnnData; Annotated ``AnnData`` object with counts scRNAseq data.</span>
+
+<span class="sd">        key : str; Celltype key in adata_sp.obs and adata_sc.obs.</span>
+
+<span class="sd">        pipeline_output : float, optional; Boolean for whether to use the function in the pipeline or not.</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        negative marker purity : float; Increase in proportion of reads assigned in spatial data to pairs of genes-celltyes with no/very low expression in scRNAseq. </span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+    
+    <span class="c1"># Set threshold parameters</span>
+    <span class="n">min_number_cells</span><span class="o">=</span><span class="mi">10</span> <span class="c1">#minimum number of cells belonging to a cluster to consider it in the analysis</span>
+    <span class="n">minimum_exp</span><span class="o">=</span><span class="mf">0.05</span> <span class="c1">#maximum relative expression allowed in a gene in a cluster to consider the gene-celltype pair the analysis </span>
+    
+    <span class="c1"># Subset adata_sc to genes of spatial data</span>
+    <span class="n">adata_sp</span> <span class="o">=</span> <span class="n">adata_sp</span><span class="p">[:,</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">var_names</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">var_names</span><span class="p">)]</span>
+    <span class="n">adata_sc</span> <span class="o">=</span> <span class="n">adata_sc</span><span class="p">[:,</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">var_names</span><span class="p">]</span>
+    <span class="c1"># TMP fix for sparse matrices, ideally we don&#39;t convert, and instead have calculations for sparse/non-sparse</span>
+    <span class="c1">#for a in [adata_sc, adata_sp]:</span>
+    <span class="c1">#    if issparse(a.X):</span>
+    <span class="c1">#        a.X = a.X.toarray()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="c1"># Get mean expression per cell type</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">exp_sc</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">todense</span><span class="p">(),</span><span class="n">columns</span><span class="o">=</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">var_names</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">exp_sc</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">var_names</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span> 
+        <span class="n">exp_sp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">todense</span><span class="p">(),</span><span class="n">columns</span><span class="o">=</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">var_names</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">exp_sp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">var_names</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">exp_sc</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1">#exp_sc[&#39;celltype&#39;] = list(adata_sc.obs[key])</span>
+    <span class="c1">#exp_sp[&#39;celltype&#39;] = list(adata_sp.obs[key])</span>
+    <span class="c1"># instead of measuring the purity by cell type, we check it based on the proportion of posive cells</span>
+    
+    <span class="c1">#mean_celltype_sc = exp_sc.groupby(&#39;celltype&#39;).mean()</span>
+    <span class="c1">#mean_celltype_sp = exp_sp.groupby(&#39;celltype&#39;).mean()</span>
+    <span class="n">mean_celltype_sc</span><span class="o">=</span><span class="n">coexpression_calculation</span><span class="p">(</span><span class="n">exp_sc</span><span class="p">,</span><span class="n">min_exp</span><span class="o">=</span><span class="n">minexp</span><span class="p">)</span>
+    <span class="n">mean_celltype_sp</span><span class="o">=</span><span class="n">coexpression_calculation</span><span class="p">(</span><span class="n">exp_sp</span><span class="p">,</span><span class="n">min_exp</span><span class="o">=</span><span class="n">minexp</span><span class="p">)</span>
+    
+    <span class="c1"># Get mean expressions relative to mean over cell types (this will be used for filtering based on minimum_exp)</span>
+    <span class="n">mean_ct_sc_rel</span> <span class="o">=</span> <span class="n">mean_celltype_sc</span><span class="c1">#.div(mean_celltype_sc.mean(axis=0),axis=1)</span>
+    <span class="n">mean_ct_sp_rel</span> <span class="o">=</span> <span class="n">mean_celltype_sp</span><span class="c1">#.div(mean_celltype_sp.mean(axis=0),axis=1)</span>
+    
+    <span class="c1"># Get normalized mean expressions over cell types (this will be summed up over negative cell types)</span>
+    <span class="n">mean_ct_sc_norm</span> <span class="o">=</span> <span class="n">mean_celltype_sc</span><span class="c1">#.div(mean_celltype_sc.sum(axis=0),axis=1)</span>
+    <span class="n">mean_ct_sp_norm</span> <span class="o">=</span> <span class="n">mean_celltype_sp</span><span class="c1">#.div(mean_celltype_sp.sum(axis=0),axis=1)</span>
+    <span class="c1"># Explanation: The idea is to measure which ratio of mean expressions is shifted towards negative clusters.</span>
+    <span class="c1">#              With this approach the metric stays between 0 and 1</span>
+    <span class="n">commongenes</span><span class="o">=</span><span class="n">mean_ct_sc_rel</span><span class="o">.</span><span class="n">index</span>
+    <span class="c1"># Get gene-cell type pairs with negative marker expression</span>
+    <span class="n">neg_marker_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mean_ct_sc_rel</span> <span class="o">&lt;</span> <span class="n">minimum_exp</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">clustermap</span><span class="p">(</span><span class="n">mean_ct_sc_rel</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span><span class="n">vmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="c1"># Return nan if no negative markers were found</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">neg_marker_mask</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No negative markers were found in the sc data reference.&quot;</span><span class="p">)</span>
+        <span class="n">negative_marker_purity</span> <span class="o">=</span> <span class="s1">&#39;nan&#39;</span>
+        <span class="k">if</span> <span class="n">pipeline_output</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">negative_marker_purity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">negative_marker_purity</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    
+    <span class="c1"># Get marker expressions in negative marker-cell type pairs</span>
+    <span class="n">lowvals_sc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">neg_marker_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">lowvals_sc</span> <span class="o">=</span> <span class="n">mean_ct_sc_norm</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">neg_marker_mask</span><span class="p">]</span>
+    <span class="n">lowvals_sp</span> <span class="o">=</span> <span class="n">mean_ct_sp_norm</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">neg_marker_mask</span><span class="p">]</span>
+    
+    <span class="c1"># Take the mean over the normalized expressions of the genes&#39; negative cell types</span>
+    <span class="n">mean_sc_lowexp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lowvals_sc</span><span class="p">)</span>
+    <span class="n">mean_sp_lowexp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lowvals_sp</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate summary metric</span>
+    <span class="c1">#negative_marker_purity = 1</span>
+    <span class="c1">#if mean_sp_lowexp &gt; mean_sc_lowexp:</span>
+    <span class="c1">#    negative_marker_purity -= (mean_sp_lowexp - mean_sc_lowexp)</span>
+    <span class="n">lowvals_diff</span><span class="o">=</span><span class="p">(</span><span class="n">lowvals_sp</span><span class="o">-</span><span class="n">lowvals_sc</span><span class="p">)</span>
+    <span class="n">lowvals_diff</span><span class="p">[</span><span class="n">lowvals_diff</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">negative_marker_purity</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lowvals_diff</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">pipeline_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">negative_marker_purity</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Calculate per gene and per cell type purities</span>
+        <span class="n">purities</span> <span class="o">=</span> <span class="p">(</span><span class="n">mean_ct_sp_norm</span> <span class="o">-</span> <span class="n">mean_ct_sc_norm</span><span class="p">)</span><span class="c1">#.cip(0,None)</span>
+        <span class="n">purities</span><span class="p">[</span><span class="o">~</span><span class="n">neg_marker_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">purities</span> <span class="o">=</span> <span class="n">purities</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="p">(</span><span class="n">purities</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="o">~</span><span class="p">(</span><span class="n">purities</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))]</span>
+        <span class="n">purity_per_gene</span> <span class="o">=</span> <span class="n">purities</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">skipna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">purity_per_celltype</span> <span class="o">=</span> <span class="n">purities</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">skipna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">negative_marker_purity</span><span class="p">,</span> <span class="n">purity_per_gene</span><span class="p">,</span> <span class="n">purity_per_celltype</span><span class="p">,</span><span class="n">lowvals_sc</span><span class="p">,</span><span class="n">lowvals_sp</span><span class="p">,</span><span class="n">commongenes</span></div>
+
+
+    
+<div class="viewcode-block" id="coexpression_calculation">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.coexpression_calculation">[docs]</a>
+<span class="k">def</span> <span class="nf">coexpression_calculation</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span><span class="n">min_exp</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Caculate coexpression between genes in a given dataset</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        exp (DataFrame): expression of cells profiled in a cell x gene format, where cells are rows and genes are columns.</span>
+
+<span class="sd">        min_exp (float): Maximum expression of the cells to be considered as not expressing a gene (typically is 0).</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        coexpression(DataFrame): coexpression DataFrame represented as a gene-by-gene matrix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>  
+
+    <span class="n">coexpression</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">sel</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">col</span><span class="p">]</span><span class="o">&gt;</span><span class="n">min_exp</span>
+        <span class="n">positive_cells</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sel</span><span class="p">,:]</span>
+        <span class="n">coexpression</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">positive_cells</span><span class="o">&gt;</span><span class="n">min_exp</span><span class="p">)</span><span class="o">/</span><span class="n">positive_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">coexpression</span><span class="o">=</span><span class="n">coexpression</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coexpression</span></div>
+
+
+
+<div class="viewcode-block" id="alphashape_fun">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.alphashape_fun">[docs]</a>
+<span class="k">def</span> <span class="nf">alphashape_fun</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Caculate area of a a cell </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        points (list of tuple): list of xy points found in a cell (i.e. [(1,2),(2,4)]).</span>
+
+<span class="sd">        alpha (int): alpha parameter to be tuned to define cell border.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        area(flaot): Area of the cell.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+
+    <span class="n">alpha_shape</span> <span class="o">=</span> <span class="n">alphashape</span><span class="o">.</span><span class="n">alphashape</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">alpha_shape</span><span class="o">.</span><span class="n">area</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">PolygonPatch</span><span class="p">(</span><span class="n">alpha_shape</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Alpha Shape&#39;</span><span class="p">))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">ss</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Area of the Alpha Shape (Concave Hull):&quot;</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">area</span></div>
+
+
+<div class="viewcode-block" id="svf_moranI">
+<a class="viewcode-back" href="../../xb.html#xb.calculating.svf_moranI">[docs]</a>
+<span class="k">def</span> <span class="nf">svf_moranI</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span><span class="n">sample_key</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">50.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute spatially variable features using Moran&#39;s I (squidpy implementation)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata1 (AnnData): AnnData object of profiled cells.</span>
+
+<span class="sd">        sample_key (str): Column of adata1.obs where sample of origin of each cell is stored.</span>
+<span class="sd">        </span>
+<span class="sd">        radius (float): Radius usd to compute the spatial neighbors in sq.gr.spatial_neighbors. Given in the scale the spatial coordinates are in (typically in um).</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1 (AnnData): AnnData object of profiled cells with computed svf&#39;s.</span>
+
+<span class="sd">        hs_results(DataFrame): DataFrame with the results of computing moran&#39;s I for each gene in the given input dataset, including pval, FDR and ranking of the gene.</span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+    
+    <span class="n">anndata_list</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sample_key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">adata_copy_int</span> <span class="o">=</span> <span class="n">adata</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sample_key</span><span class="p">]</span><span class="o">==</span><span class="n">sample</span><span class="p">]</span>
+        <span class="n">sq</span><span class="o">.</span><span class="n">gr</span><span class="o">.</span><span class="n">spatial_neighbors</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span><span class="n">coord_type</span> <span class="o">=</span><span class="s1">&#39;generic&#39;</span><span class="p">)</span>
+        <span class="n">anndata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="p">)</span> 
+    <span class="n">adata1</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">anndata_list</span><span class="p">,</span><span class="n">join</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span><span class="n">pairwise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+    <span class="n">sq</span><span class="o">.</span><span class="n">gr</span><span class="o">.</span><span class="n">spatial_autocorr</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;moran&quot;</span><span class="p">)</span>
+    <span class="n">hs_results</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s2">&quot;moranI&quot;</span><span class="p">]</span>
+    <span class="n">hs_results</span><span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">hs_results</span><span class="p">[</span><span class="s1">&#39;I&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">rank</span><span class="p">())</span>
+    <span class="n">hs_results</span><span class="o">=</span><span class="n">hs_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;pval_norm&#39;</span><span class="p">,</span><span class="s1">&#39;pval_norm_fdr_bh&#39;</span><span class="p">,</span><span class="s1">&#39;rank&#39;</span><span class="p">]]</span>
+    <span class="n">hs_results</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Pval&#39;</span><span class="p">,</span><span class="s1">&#39;FDR&#39;</span><span class="p">,</span><span class="s1">&#39;rank&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">adata1</span><span class="p">,</span><span class="n">hs_results</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, nima rafati.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
