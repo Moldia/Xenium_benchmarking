@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xb package &mdash; Xenium_Benchmarking 1.0.0. documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f62d2fdb" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=58f5e731"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Xenium_Benchmarking
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xb.html">xb package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../end-to-end_pipeline_optimized.html">END-TO-END PIPELINE</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Xenium_Benchmarking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">xb package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/xb.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="xb-package">
+<h1>xb package<a class="headerlink" href="#xb-package" title="Link to this heading"></a></h1>
+<section id="module-xb.neighborhood">
+<span id="xb-neighborhood-module"></span><h2>xb.neighborhood module<a class="headerlink" href="#module-xb.neighborhood" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.neighborhood.nhood_squidpy">
+<span class="sig-prename descclassname"><span class="pre">xb.neighborhood.</span></span><span class="sig-name descname"><span class="pre">nhood_squidpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'leiden'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inferno'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/neighborhood.html#nhood_squidpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.neighborhood.nhood_squidpy" title="Link to this definition"></a></dt>
+<dd><p>Compute neighborhood enrichment based on Squidpy’s function</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>sample_key (str): name of the column where the sample each cell belongs to is specify. It should be a column present in adata.obs.</p>
+<p>radius (int): radius to consider when compuing the spatial neighbors, specified in the scale that adata.obsm[‘spatial’] is in (typically um).</p>
+<p>cluster_key (str): name of the column where the cell type of each cell is specified. The neighborhood enrichment will be computed based on this groups.</p>
+<p>save (Boolean): specify whether the resulting plot should be saved in the paths specified in ‘plot_path’ or not.</p>
+<p>cmap (str): name of the colormap used to plot the neighborhood enrichment plot.</p>
+<p>vmax (int): maximum value to show in the neighborhood enrcihment plot.</p>
+<p>vmin (int): minimum value to show in the neighborhood enrichment plot.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1: AnnData object with the neighborhood enrichment scores computed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.plotting">
+<span id="xb-plotting-module"></span><h2>xb.plotting module<a class="headerlink" href="#module-xb.plotting" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.plotting.generate_hex_colors">
+<span class="sig-prename descclassname"><span class="pre">xb.plotting.</span></span><span class="sig-name descname"><span class="pre">generate_hex_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">70</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/plotting.html#generate_hex_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.plotting.generate_hex_colors" title="Link to this definition"></a></dt>
+<dd><p>Generate a list of hex colors.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>num_colors(int): number of colors to generate.</p>
+</dd>
+<dt>results:</dt><dd><p>hex_colors (list):list of randomly generated colors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.plotting.map_of_clusters">
+<span class="sig-prename descclassname"><span class="pre">xb.plotting.</span></span><span class="sig-name descname"><span class="pre">map_of_clusters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'leiden'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figuresize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">7)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pdf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/plotting.html#map_of_clusters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.plotting.map_of_clusters" title="Link to this definition"></a></dt>
+<dd><p>Make spatial plots based on a given adata object.</p>
+<dl>
+<dt>Args:</dt><dd><p>key (str): the terms in adata.obs that you want to plot.</p>
+<p>clusters (str or list):’all’ for plotting all clusters in a single plot, ‘individual’: for plots of individual genes, or [‘3’,’5’] (your groups between square brackets to plot only some clusters.</p>
+<p>size: to change the size of your spots.</p>
+<p>background (str): color of the background.</p>
+<p>figuresize (tupple): to specify the size of your figure.</p>
+<p>save (boolean or str): whether want to save your figure. If so, please add the PATH of the folder where you want to save it.</p>
+<p>format (str): specify the format in which you want to save your figure (i.e. ‘.pdf’, ‘.png’).</p>
+</dd>
+<dt>results:</dt><dd><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.plotting.plot_cell_counts">
+<span class="sig-prename descclassname"><span class="pre">xb.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_cell_counts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clustering_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/plotting.html#plot_cell_counts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.plotting.plot_cell_counts" title="Link to this definition"></a></dt>
+<dd><p>Plot the histogram of the counts detected per cell</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the information of cells profiled.</p>
+<p>plot_path (str): path where to save the generated plot, if needed.</p>
+<p>save (boolean): whether to save or not the output path.</p>
+<p>clustering_params (dict): list of parameters used for preprocessing and clustering the experiment.</p>
+</dd>
+<dt>results:</dt><dd><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.plotting.plot_domains">
+<span class="sig-prename descclassname"><span class="pre">xb.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_domains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groupby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nbd_domain'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/plotting.html#plot_domains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.plotting.plot_domains" title="Link to this definition"></a></dt>
+<dd><p>Generate the spatial plots of the domains previously identified</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the information of cells profiled.</p>
+<p>groupby (str): Name of the column in adata.obs where the domain information is stored.</p>
+</dd>
+<dt>results:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.calculating">
+<span id="xb-calculating-module"></span><h2>xb.calculating module<a class="headerlink" href="#module-xb.calculating" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.alphashape_fun">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">alphashape_fun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#alphashape_fun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.alphashape_fun" title="Link to this definition"></a></dt>
+<dd><p>Caculate area of a a cell</p>
+<dl>
+<dt>Args:</dt><dd><p>points (list of tuple): list of xy points found in a cell (i.e. [(1,2),(2,4)]).</p>
+<p>alpha (int): alpha parameter to be tuned to define cell border.</p>
+</dd>
+<dt>results:</dt><dd><p>area(flaot): Area of the cell.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.coexpression_calculation">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">coexpression_calculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_exp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#coexpression_calculation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.coexpression_calculation" title="Link to this definition"></a></dt>
+<dd><p>Caculate coexpression between genes in a given dataset</p>
+<dl>
+<dt>Args:</dt><dd><p>exp (DataFrame): expression of cells profiled in a cell x gene format, where cells are rows and genes are columns.</p>
+<p>min_exp (float): Maximum expression of the cells to be considered as not expressing a gene (typically is 0).</p>
+</dd>
+<dt>results:</dt><dd><p>coexpression(DataFrame): coexpression DataFrame represented as a gene-by-gene matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.compute_fmi">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">compute_fmi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ground_truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#compute_fmi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.compute_fmi" title="Link to this definition"></a></dt>
+<dd><p>Compute fowlkes mallows index for two different clusterings</p>
+<dl>
+<dt>Args:</dt><dd><p>ground_truth (list): list of reference clusters given to cells profiled.</p>
+<p>predicted (list): list of predicted/computed clusters for cells profiled.</p>
+</dd>
+<dt>results:</dt><dd><p>fmi_score(float): fowlkes mallows index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.compute_nmi">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">compute_nmi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ground_truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#compute_nmi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.compute_nmi" title="Link to this definition"></a></dt>
+<dd><p>Compute normalized mutual information score for two different clusterings</p>
+<dl>
+<dt>Args:</dt><dd><p>ground_truth (list): list of reference clusters given to cells profiled.</p>
+<p>predicted (list): list of predicted/computed clusters for cells profiled.</p>
+</dd>
+<dt>results:</dt><dd><p>nmi_score(float): normalized mutual information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.compute_vi">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">compute_vi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ground_truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#compute_vi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.compute_vi" title="Link to this definition"></a></dt>
+<dd><p>Compute variation of information for comparing two different clusterings</p>
+<dl>
+<dt>Args:</dt><dd><p>ground_truth (list): list of reference clusters given to cells profiled.</p>
+<p>predicted (list): list of predicted/computed clusters for cells profiled.</p>
+</dd>
+<dt>results:</dt><dd><p>vi_score(float): variation of information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.dispersion">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">dispersion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reads_original</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adata1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#dispersion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.dispersion" title="Link to this definition"></a></dt>
+<dd><p>Calculate the distance between each read and its assigned cell</p>
+<dl>
+<dt>Args:</dt><dd><p>reads_original(DataFrame): information of all profiled reads.</p>
+<p>adata1(AnnData): object with the expression and metadata of cells profiled, including spatial position.</p>
+</dd>
+<dt>results:</dt><dd><p>reads_assigned (DataFrame): information of all profiled reads, includinf distance to its closest cell.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.dist_nuc">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">dist_nuc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reads_ctdsub</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#dist_nuc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.dist_nuc" title="Link to this definition"></a></dt>
+<dd><p>Compute the median distance to the nuclei the edges of each cell, for all cells profiled</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>reads_ctdsub (DataFrame): Dataframe containing the information of the transcripts profiled, incuding their location in ‘x_location’ and ‘y_location’, as well as the cell they are assigned to, in ‘cell_id’.</p>
+</dd>
+<dt>results:</dt><dd><p>median_dist(float): Median distance of cell edges for all cells profiled.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.distance_calc">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">distance_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#distance_calc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.distance_calc" title="Link to this definition"></a></dt>
+<dd><p>Calculate distance between two points</p>
+<dl>
+<dt>Args:</dt><dd><p>x1(float): x coordinate of the first point.</p>
+<p>y1(float): y coordinate of the first point.</p>
+<p>x2(float): x coordinate of the second point.</p>
+<p>y2(float): y coordinate of the second point.</p>
+</dd>
+<dt>results:</dt><dd><p>distance (float): distance between the two points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.domainassign">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">domainassign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plsin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adatadom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#domainassign"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.domainassign" title="Link to this definition"></a></dt>
+<dd><p>Assign cells to domains based on predefined polygons</p>
+<dl>
+<dt>Args:</dt><dd><p>plsin (DataFrame): Information of polygons defining domains.</p>
+<p>adatadom (AnnData): cells profiled spatially in an AnnData object and with information of their spatial location in [‘x_centroid’] and [‘y_centroid’].</p>
+</dd>
+<dt>results:</dt><dd><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.entropy">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clustering</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.entropy" title="Link to this definition"></a></dt>
+<dd><p>Compute entropy</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>clustering (list): list of clusters assigned to cells.</p>
+</dd>
+<dt>results:</dt><dd><p>entropy_value(float): entropy value computed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.hex_to_rgb">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">hex_to_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#hex_to_rgb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.hex_to_rgb" title="Link to this definition"></a></dt>
+<dd><p>Transform hex to rgb</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>value (str): hex code to be transform (i.e ‘#h4a4a2’).</p>
+</dd>
+<dt>results:</dt><dd><p>rgb_value(tuple): Rgb value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.negative_marker_purity_coexpression">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">negative_marker_purity_coexpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_sp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adata_sc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'celltype'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minexp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#negative_marker_purity_coexpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.negative_marker_purity_coexpression" title="Link to this definition"></a></dt>
+<dd><p>Negative marker purity aims to measure read leakeage between cells in spatial datasets.</p>
+<p>For this, we calculate the increase in reads assigned in spatial datasets to pairs of genes-celltyes with no/very low expression in scRNAseq</p>
+<dl>
+<dt>Args:</dt><dd><p>adata_sp : AnnData; Annotated <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> object with counts from spatial data.</p>
+<p>adata_sc : AnnData; Annotated <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> object with counts scRNAseq data.</p>
+<p>key : str; Celltype key in adata_sp.obs and adata_sc.obs.</p>
+<p>pipeline_output : float, optional; Boolean for whether to use the function in the pipeline or not.</p>
+</dd>
+<dt>returns:</dt><dd><p>negative marker purity : float; Increase in proportion of reads assigned in spatial data to pairs of genes-celltyes with no/very low expression in scRNAseq.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.calculating.svf_moranI">
+<span class="sig-prename descclassname"><span class="pre">xb.calculating.</span></span><span class="sig-name descname"><span class="pre">svf_moranI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/calculating.html#svf_moranI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.calculating.svf_moranI" title="Link to this definition"></a></dt>
+<dd><p>Compute spatially variable features using Moran’s I (squidpy implementation)</p>
+<dl>
+<dt>Args:</dt><dd><p>adata1 (AnnData): AnnData object of profiled cells.</p>
+<p>sample_key (str): Column of adata1.obs where sample of origin of each cell is stored.</p>
+<p>radius (float): Radius usd to compute the spatial neighbors in sq.gr.spatial_neighbors. Given in the scale the spatial coordinates are in (typically in um).</p>
+</dd>
+<dt>results:</dt><dd><p>adata1 (AnnData): AnnData object of profiled cells with computed svf’s.</p>
+<p>hs_results(DataFrame): DataFrame with the results of computing moran’s I for each gene in the given input dataset, including pval, FDR and ranking of the gene.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.comparing">
+<span id="xb-comparing-module"></span><h2>xb.comparing module<a class="headerlink" href="#module-xb.comparing" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.comparing.combine_med">
+<span class="sig-prename descclassname"><span class="pre">xb.comparing.</span></span><span class="sig-name descname"><span class="pre">combine_med</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medians</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/comparing.html#combine_med"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.comparing.combine_med" title="Link to this definition"></a></dt>
+<dd><p>Combine precomputed medians into a single dataframe</p>
+<dl>
+<dt>Args:</dt><dd><p>medians(list): list of precomputed medians of expression.</p>
+<p>tag(str): tag to be added as a column to the list of medians. In here, this is the methods the medians where computed from.</p>
+</dd>
+<dt>results:</dt><dd><p>mm(DataFrame): formated medians into a DataFrame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.comparing.median_calculator">
+<span class="sig-prename descclassname"><span class="pre">xb.comparing.</span></span><span class="sig-name descname"><span class="pre">median_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_filt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/comparing.html#median_calculator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.comparing.median_calculator" title="Link to this definition"></a></dt>
+<dd><p>Calculate medians expression for cells profiled with each technology compared to a reference single cell RNAseq dataset</p>
+<dl>
+<dt>Args:</dt><dd><p>adata_dict (dict): dictionary including the names of the datasets analyzed as .keys() and AnnData’s of each technologies as .values(). It includes a reference scRNAseq dataset in ‘anno_scRNAseq’.</p>
+<p>df_filt(DataFrame): dataframe including the list of genes to be compared in .index.</p>
+</dd>
+<dt>results:</dt><dd><p>means(dict): dictionary of means computed with names of the datasets in .keys() and a list of medians computed as .values().</p>
+<p>genes_s(dict):dictionary of gene name of the means computed with names of the datasets in .keys() and a list of neme of the genes that have been used to compute medians computed as .values().</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.domain_identification">
+<span id="xb-domain-identification-module"></span><h2>xb.domain_identification module<a class="headerlink" href="#module-xb.domain_identification" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.adapt_banksy_for_multisample">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">adapt_banksy_for_multisample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samplekey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#adapt_banksy_for_multisample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.adapt_banksy_for_multisample" title="Link to this definition"></a></dt>
+<dd><p>Modify the spatial coordinates of each sample in adata so that they can be later be processed together by banksy</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>samplekey(str): name of the column in adata.obs where the sample of origin of each cell is stored.</p>
+</dd>
+<dt>results:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment with modified adata.obs[‘spatial’], ready to perform banksy.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.compare_domains">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">compare_domains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#compare_domains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.compare_domains" title="Link to this definition"></a></dt>
+<dd><p>Compare domains assigned by different methods using ARI. Generate heatmap comparing them</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>domain_keys(list): list of the column names in adata.obs where domains are stored.</p>
+<p>save(boolean): whether to save plots on not.</p>
+<p>plot_path(str): path to the folder where to save the resulting plots.</p>
+</dd>
+<dt>results:</dt><dd><p>ARI (DataFrame): DataFrame consisting of ARI computed between domain idenification methods.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.define_palette">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">define_palette</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#define_palette"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.define_palette" title="Link to this definition"></a></dt>
+<dd><p>Create a random palette of colors in hex format</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>n_colors(str): number of colors to be inclued in the palette.</p>
+</dd>
+<dt>results:</dt><dd><p>colorlist(list): list of generated colors in hex format.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.domains_by_banksy">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">domains_by_banksy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">banksy_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#domains_by_banksy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.domains_by_banksy" title="Link to this definition"></a></dt>
+<dd><p>Modify the spatial coordinates of each sample in adata so that they can be later be processed together by banksy</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment where Banksy will be computed.</p>
+<p>save(boolean): whether to save the resulting object or not.</p>
+<p>plot_path(str): path where to save the plots generated, if desired.</p>
+<p>banksy_params(dict): parameters required to perform banksy.</p>
+</dd>
+<dt>results:</dt><dd><p>adata (AnnData): Original AnnData object with the cells of the experiment with domains identified assigned to cells.</p>
+<p>adata_res (AnnData): AnnData object resulting of the identification of domains. It contains all intermediate information generated by Banksy.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.domains_by_nbd">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">domains_by_nbd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperparameters_nbd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#domains_by_nbd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.domains_by_nbd" title="Link to this definition"></a></dt>
+<dd><p>Define cellular domains by collapsing using the cellular identity of neighboring cell types and clustering
+Args:</p>
+<blockquote>
+<div><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>hyperparameters_nbd(dict): dictionary with all the parameters required to identify domains based on neighbors (neighbors based domains).</p>
+</div></blockquote>
+<dl>
+<dt>results:</dt><dd><p>adata (AnnData): Original AnnData object with expression of cells and the domain identified incorporated in a column in adata.obs.</p>
+<p>adataneigh (AnnData): AnnData object where domains have been identified. Cells here include the identity of neighboring cells.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.domains_by_rbd">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">domains_by_rbd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperparameters_rbd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#domains_by_rbd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.domains_by_rbd" title="Link to this definition"></a></dt>
+<dd><p>Define cellular domains by collapsing the expression of cells arround each cell (a.k.a pseudobining) and clustering
+Args:</p>
+<blockquote>
+<div><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>hyperparameters_rbd(dict): dictionary with all the parameters required to identify domains based on reads (read based domains).</p>
+</div></blockquote>
+<dl>
+<dt>results:</dt><dd><p>adata (AnnData): Original AnnData object with expression of cells and the domain identified incorporated in a column in adata.obs.</p>
+<p>adataneigh (AnnData): AnnData object where domains have been identified. Cells here include the expression of neighboring cells collapsed into them.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.format_data_neighs">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">format_data_neighs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#format_data_neighs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.format_data_neighs" title="Link to this definition"></a></dt>
+<dd><p>Redefine the expression of cells in adata by counting the neighnoring cell types of each cell</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>sname(str): column in adata.obs where the cluster assigned to each cells are stored.</p>
+<p>neighs(int): number of neighbors to consider when computing neighboring cells.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1 (AnnData): AnnData object with neighboring cell types included in a cell-by-celltype matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.format_data_neighs_colapse">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">format_data_neighs_colapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#format_data_neighs_colapse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.format_data_neighs_colapse" title="Link to this definition"></a></dt>
+<dd><p>Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>condit(str): column in adata.obs where the sample each cell belongs to is stored.</p>
+<p>neighs(int): number of neighbors to consider when collapsing the expression of neighboring cells.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1 (AnnData): AnnData object with expression of cells collapsed from neighboring cells.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.domain_identification.spatial_plot">
+<span class="sig-prename descclassname"><span class="pre">xb.domain_identification.</span></span><span class="sig-name descname"><span class="pre">spatial_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groupby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nbd_domain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/domain_identification.html#spatial_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.domain_identification.spatial_plot" title="Link to this definition"></a></dt>
+<dd><p>Generate spatial plot of each sample in an AnnData object, with cells color as required
+Args:</p>
+<blockquote>
+<div><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>groupby(str): name of the column in adata.obs to use to color cells.</p>
+<p>save(boolean):whether to save the resulting plots or not.</p>
+<p>plot_path(str): if required, path where to save the resulting plots.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>results:</dt><dd><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.formatting">
+<span id="xb-formatting-module"></span><h2>xb.formatting module<a class="headerlink" href="#module-xb.formatting" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.batch_prep_xenium_data_for_baysor">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">batch_prep_xenium_data_for_baysor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CROP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">COORDS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1000,</span> <span class="pre">5000,</span> <span class="pre">1000,</span> <span class="pre">5000]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#batch_prep_xenium_data_for_baysor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.batch_prep_xenium_data_for_baysor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.cell_area">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">cell_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_sp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#cell_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.cell_area" title="Link to this definition"></a></dt>
+<dd><p>Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2”</p>
+<dl>
+<dt>Args:</dt><dd><p>adata_sp : AnnData, annotated <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> object with counts from spatial data.</p>
+<p>pipeline_output : float, optional, boolean for whether to create the pipeline output.</p>
+</dd>
+<dt>results:</dt><dd><p>density : float</p>
+<p>Cell density (cells/um)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_background">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_background</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_background"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_background" title="Link to this definition"></a></dt>
+<dd><p>Format OME-TIFF background mipped image to .tiff image</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path(str): path to the folder where the output of the Xenium machine is stored.</p>
+</dd>
+<dt>results:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_baysor_output_to_adata">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_baysor_output_to_adata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_baysor_output_to_adata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_baysor_output_to_adata" title="Link to this definition"></a></dt>
+<dd><p>Format baysor’s output to anndata</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path (AnnData): path to the folder where baysor’s output is stored
+output_path(str): path where to store the generated adata</p>
+</dd>
+<dt>results:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_data_neighs">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_data_neighs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_data_neighs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_data_neighs" title="Link to this definition"></a></dt>
+<dd><p>Redefine the expression of cells in adata by counting the neighnoring cell types of each cell</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>sname(str): column in adata.obs where the cluster assigned to each cells are stored.</p>
+<p>neighs(int): number of neighbors to consider when computing neighboring cells.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1 (AnnData): AnnData object with neighboring cell types included in a cell-by-celltype matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_data_neighs_colapse">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_data_neighs_colapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_data_neighs_colapse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_data_neighs_colapse" title="Link to this definition"></a></dt>
+<dd><p>Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>sname(str): column in adata.obs where sample is stored.</p>
+<p>condit(str): column in adata.obs where the sample each cell belongs to is stored.</p>
+<p>neighs(int): number of neighbors to consider when collapsing the expression of neighboring cells.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1 (AnnData): AnnData object with expression of cells collapsed from neighboring cells.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_to_adata">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_to_adata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_parquet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nucleus_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_to_adata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_to_adata" title="Link to this definition"></a></dt>
+<dd><p>Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters</p>
+<dl>
+<dt>Args:</dt><dd><p>files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).</p>
+<p>output_path(str): path where to store the resulting adata object.</p>
+<p>use_parquet(boolean): whether to use parquet files as an input to generate the AnnData File. (it’s way faster).</p>
+<p>save(boolean): whether to save the resulting object.</p>
+<p>max_nucleus_distance: Maximum distance from the nuclei for reads to be kept in redefined cells.</p>
+<p>min_quality(float): Define minimum quality (qv) of reads to keep in the analysis.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the formated cells with only reads that passed the filters established.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_xenium_adata">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_xenium_adata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_xenium_adata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_xenium_adata" title="Link to this definition"></a></dt>
+<dd><p>Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)</p>
+<dl>
+<dt>Args:</dt><dd><p>path(str): path to the folder where the output of the Xenium machine is stored.</p>
+<p>tag(str): sample tag to be added to be added to all cells formated from the section.</p>
+<p>output_path(str): path where to store the resulting adata object.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the formated cells</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_xenium_adata_2023">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_xenium_adata_2023</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_xenium_adata_2023"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_xenium_adata_2023" title="Link to this definition"></a></dt>
+<dd><p>Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023</p>
+<dl>
+<dt>Args:</dt><dd><p>path(str): path to the folder where the output of the Xenium machine is stored.</p>
+<p>tag(str): sample tag to be added to be added to all cells formated from the section.</p>
+<p>output_path(str): path where to store the resulting adata object.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the formated cells.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_xenium_adata_final">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_xenium_adata_final</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_parquet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_xenium_adata_final"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_xenium_adata_final" title="Link to this definition"></a></dt>
+<dd><p>Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format.</p>
+<dl>
+<dt>Args:</dt><dd><p>path(str): path to the folder where the output of the Xenium machine is stored, if requested.</p>
+<p>tag(str): sample tag to be added to be added to all cells formated from the section.</p>
+<p>output_path(str): path where to store the resulting adata object.</p>
+<p>use_parquet(boolean): whether to use parquet files as an input to generate the AnnData File. (it’s way faster).</p>
+<p>save(boolean): whether to save the resulting object.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the formated cells</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.format_xenium_adata_mid_2023">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_xenium_adata_mid_2023</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#format_xenium_adata_mid_2023"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_xenium_adata_mid_2023" title="Link to this definition"></a></dt>
+<dd><p>Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023</p>
+<dl>
+<dt>Args:</dt><dd><p>path(str): path to the folder where the output of the Xenium machine is stored.</p>
+<p>tag(str): sample tag to be added to be added to all cells formated from the section.</p>
+<p>output_path(str): path where to store the resulting adata object.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the formated cells.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.generate_random_color_variation">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">generate_random_color_variation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deviation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.17</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#generate_random_color_variation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.generate_random_color_variation" title="Link to this definition"></a></dt>
+<dd><p>Generate variations of a reference color</p>
+<dl>
+<dt>Args:</dt><dd><p>base_color (str):reference hex color.</p>
+<p>deviation(float): deviation from the base color that the resulting color should have.</p>
+</dd>
+<dt>results:</dt><dd><p>modified_hex_color(str):resulting hex color.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.keep_nuclei">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">keep_nuclei</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlaps_nucleus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#keep_nuclei"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.keep_nuclei" title="Link to this definition"></a></dt>
+<dd><p>Redefine cells in AnnData to keep only nuclear reads</p>
+<dl>
+<dt>Args:</dt><dd><p>adata1(AnnData): AnnData object with the cells of the experiment.</p>
+<p>overlaps_nucleus(int): whether to keep only nuclear reads only (1) or cytoplasmic reads (0) in the redefinition of cells.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the formated cells</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.keep_nuclei_and_quality">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">keep_nuclei_and_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nucleus_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#keep_nuclei_and_quality"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.keep_nuclei_and_quality" title="Link to this definition"></a></dt>
+<dd><p>Redefine cell expression based on nuclei expression an quality of detected reads</p>
+<dl>
+<dt>Args:</dt><dd><p>adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.</p>
+<p>tag (str): sample tag to added in the name of the saved filed, if needed.</p>
+<p>save(boolean): whether to save the resulting files.</p>
+<p>output_path(str): if needed, where to save the resulting files.</p>
+<p>max_nucleus_distance(float): Maximum distance from the nuclei for reads to be kept in redefined cells.</p>
+<p>min_quality(float): Define minimum quality (qv) of reads to keep in the analysis.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.formatting.prep_xenium_data_for_baysor">
+<span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">prep_xenium_data_for_baysor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">XENIUM_DIR</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OUT_DIR</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CROP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">COORDS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[15000,</span> <span class="pre">16000,</span> <span class="pre">15000,</span> <span class="pre">16000]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/formatting.html#prep_xenium_data_for_baysor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.prep_xenium_data_for_baysor" title="Link to this definition"></a></dt>
+<dd><p>Format xenium datasets for its use for baysor segmentation</p>
+<dl>
+<dt>Args:</dt><dd><p>XENIUM_DIR(list): path where  the Xenium output is saved for each sample (output from the machine).</p>
+<p>OUT_DIR(str): path where to store the resulting adata object.</p>
+<p>CROP(boolean): whether to use a small Region of interest for segmentation.</p>
+<p>COORDS(list): if CROP is used, coordinates of the crop in the form of [YMIN,YMAX,XMIN,XMAX].</p>
+</dd>
+<dt>results:</dt><dd><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.preprocessing">
+<span id="xb-preprocessing-module"></span><h2>xb.preprocessing module<a class="headerlink" href="#module-xb.preprocessing" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.preprocessing.main_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">xb.preprocessing.</span></span><span class="sig-name descname"><span class="pre">main_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mincounts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mingenes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neigh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hvg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/preprocessing.html#main_preprocessing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.preprocessing.main_preprocessing" title="Link to this definition"></a></dt>
+<dd><p>Preprocess and cluster the cells in adata, given the parameters specified. This function is mainly used for simulating the performance of different preprocessing strategies</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>norm(boolean): Whether to normalize based cells or not.</p>
+<p>target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size.</p>
+<p>lg(boolean): Whether to log-transforms cells.</p>
+<p>mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters.</p>
+<p>mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters.</p>
+<p>neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors().</p>
+<p>npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors().</p>
+<p>scale(boolean): whether to scale the data or not.</p>
+<p>hvg(boolean): whether to select highly variable genes for further processing or not.</p>
+<p>total_clusters (int): number of clusters to obtain in the process of clustering (+-2).</p>
+<p>default(boolean): whether the run is the original one or not.</p>
+<p>nuc(int): DEPRECATED. NOT USED IN THIS FUNCTION.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the preprocessed and clustered cells according to the parameters specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.preprocessing.preprocess_adata">
+<span class="sig-prename descclassname"><span class="pre">xb.preprocessing.</span></span><span class="sig-name descname"><span class="pre">preprocess_adata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clustering_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output_path'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/preprocessing.html#preprocess_adata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.preprocessing.preprocess_adata" title="Link to this definition"></a></dt>
+<dd><p>Preprocess and cluster the cells in adata given the parameters specified.</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>save (boolean):whether to save or not the adata object once it has been processed.</p>
+<p>clustering_params(dict): Dictionary where main preprocessing and clustering parameters are inputed.</p>
+<p>output_path(str): path where to save the adata object in case that option is selected.</p>
+</dd>
+<dt>results:</dt><dd><p>adata: AnnData object with the preprocessed and clustered cells according to the parameters specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.simulating">
+<span id="xb-simulating-module"></span><h2>xb.simulating module<a class="headerlink" href="#module-xb.simulating" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.allcombs">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">allcombs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#allcombs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.allcombs" title="Link to this definition"></a></dt>
+<dd><p>Simulate preprocessing workflows and extract results based on it</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+</dd>
+<dt>results:</dt><dd><p>allres(DataFrame): Clustering obtained with different preprocessing workflows.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.allcombs_simulated">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">allcombs_simulated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'class'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#allcombs_simulated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.allcombs_simulated" title="Link to this definition"></a></dt>
+<dd><p>Simulate preprocessing workflows and extract results based on it for simulated data</p>
+<dl>
+<dt>Args:</dt><dd><p>adata (AnnData): AnnData object with the cells of the experiment.</p>
+<p>default_key(str): name of the column in adata.obs where the reference cell types/clusters are stored.</p>
+</dd>
+</dl>
+<p>results:
+allres(DataFrame): Clustering obtained with different preprocessing workflows.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.compute_fmi">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">compute_fmi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ground_truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#compute_fmi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.compute_fmi" title="Link to this definition"></a></dt>
+<dd><p>Compute fowlkes mallows index for two different clusterings</p>
+<dl>
+<dt>Args:</dt><dd><p>ground_truth (list): list of reference clusters given to cells profiled.</p>
+<p>predicted (list): list of predicted/computed clusters for cells profiled.</p>
+</dd>
+<dt>results:</dt><dd><p>fmi_score(float): fowlkes mallows index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.compute_vi">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">compute_vi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ground_truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#compute_vi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.compute_vi" title="Link to this definition"></a></dt>
+<dd><p>Compute variation of information for comparing two different clusterings</p>
+<dl>
+<dt>Args:</dt><dd><p>ground_truth (list): list of reference clusters given to cells profiled.</p>
+<p>predicted (list): list of predicted/computed clusters for cells profiled.</p>
+</dd>
+<dt>results:</dt><dd><p>vi_score(float): variation of information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.entropy">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clustering</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.entropy" title="Link to this definition"></a></dt>
+<dd><p>Compute entropy</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>clustering (list): list of clusters assigned to cells.</p>
+</dd>
+<dt>results:</dt><dd><p>entropy_value(float): entropy value computed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.keep_nuclei_and_quality">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">keep_nuclei_and_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlaps_nucleus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qvmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#keep_nuclei_and_quality"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.keep_nuclei_and_quality" title="Link to this definition"></a></dt>
+<dd><p>Redefine cell expression based on nuclei expression an quality of detected reads</p>
+<dl>
+<dt>Args:</dt><dd><p>adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.</p>
+<p>overlaps_nucleus(int): Keep reads overlapping nucleus only (1) or all (2).</p>
+<p>qvmin(int): Define minimum quality (qv) of reads to keep in the analysis.</p>
+</dd>
+<dt>results:</dt><dd><p>adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.main_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">main_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mincounts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mingenes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neigh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hvg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_resol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logstatus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normstatus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#main_preprocessing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.main_preprocessing" title="Link to this definition"></a></dt>
+<dd><p>preprocess and cluster cells in an Anndata object given some input parameters</p>
+<dl>
+<dt>Args:</dt><dd><p>adata(AnnData): AnnData object with the cells of the experiment before simulating the missegmentation.</p>
+<p>target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size.</p>
+<p>mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters.</p>
+<p>mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters.</p>
+<p>neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors().</p>
+<p>npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors().</p>
+<p>nuc(int): wether to use only nuclear reads (1) or all reads (0).</p>
+<p>scale(boolean): whether to scale the data or not.</p>
+<p>hvg(boolean): whether to select highly variable genes for further processing or not.</p>
+<p>default(boolean): whether the run is the original one or not.</p>
+<p>total_clusters (int): number of clusters to obtain in the process of clustering (+-2).</p>
+<p>default_resol(float): clustering resolution to use as a default when clustering.</p>
+<p>logstatus(boolean): Whether to log-transforms cells.</p>
+<p>normstatus(boolean): Whether to normalize based cells or not.</p>
+</dd>
+<dt>results:</dt><dd><p>adata(AnnData): AnnData object after preprocessing and clustering.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.missegmentation_simulation">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">missegmentation_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_sc_sub</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missegmentation_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#missegmentation_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.missegmentation_simulation" title="Link to this definition"></a></dt>
+<dd><p>Simulate missegmentation using a reference single cell data in adata form.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>adata_sc_sub (AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   
+missegmentation_percentage (float): percentage of cells (%) that are presenting missegmentation</p>
+</dd>
+<dt>results:</dt><dd><p>adata_sc_sub(AnnData): AnnData object with the cells where missegmentation has been simulated according to input parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.noise_adder">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">noise_adder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_sc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_of_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#noise_adder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.noise_adder" title="Link to this definition"></a></dt>
+<dd><p>Add noise to a single cell data inputed according to input parameters</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>adata_sc (AnnData): AnnData object with the cells of the experiment before adding noise
+percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells</p>
+</dd>
+<dt>results:</dt><dd><p>adata_sc(AnnData): AnnData object with the cells where noise has been added</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.simulating.subset_of_single_cell">
+<span class="sig-prename descclassname"><span class="pre">xb.simulating.</span></span><span class="sig-name descname"><span class="pre">subset_of_single_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_sc_sub</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">markers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_markers_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reads_x_cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_markers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reads_x_gene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_of_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ms_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/simulating.html#subset_of_single_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.simulating.subset_of_single_cell" title="Link to this definition"></a></dt>
+<dd><p>Transform a single cell data to present spatial characteristics</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>adata_sc_sub (AnnData): AnnData object with the cells obtained from single cell datasets before transforming them into spatial-like datasets  
+markers (DataFrame): dataframe incluing the main markers identified per cluster per cluster
+random_markers_percentage (float): percentage of non-marker genes included randomly in the genes selected for the panel
+reads_x_cell=None
+n_reads_x_gene (int,None): if int, final number of reads/cells required in the spatial-like datasets. If None, cells are not transformed
+number_of_markers (int): total number of genes to be included in the simulated dataset.
+n_reads_x_gene (int): final number of reads/gene required in the spatial-like datasets
+percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells
+ms_percentage (float): percentage of cells (%) that are presenting missegmentation</p>
+</dd>
+<dt>results:</dt><dd><p>adata_sc(AnnData): AnnData object with the cells after transfroming them into spatial-like datasets</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xb.Spage_main">
+<span id="xb-spage-main-module"></span><h2>xb.Spage_main module<a class="headerlink" href="#module-xb.Spage_main" title="Link to this heading"></a></h2>
+<p>SpaGE [1]
+&#64;author: Tamim Abdelaal
+This function integrates two single-cell datasets, spatial and scRNA-seq, and 
+enhance the spatial data by predicting the expression of the spatially 
+unmeasured genes from the scRNA-seq data.
+The integration is performed using the domain adaption method PRECISE [2]</p>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>[1] Abdelaal T., Mourragui S., Mahfouz A., Reiders M.J.T. (2020)
+SpaGE: Spatial Gene Enhancement using scRNA-seq
+[2] Mourragui S., Loog M., Reinders M.J.T., Wessels L.F.A. (2019)
+PRECISE: A domain adaptation approach to transfer predictors of drug response
+from pre-clinical models to tumors</p>
+</div></blockquote>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xb.Spage_main.</span></span><span class="sig-name descname"><span class="pre">PLS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PLS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PLS" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Implement PLS to make it compliant with the other dimensionality
+reduction methodology.
+(Simple class rewritting).</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS.components_">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">components_</span></span><a class="headerlink" href="#xb.Spage_main.PLS.components_" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PLS.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PLS.fit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS.get_components_">
+<span class="sig-name descname"><span class="pre">get_components_</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PLS.get_components_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PLS.get_components_" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PLS.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PLS.predict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS.set_components_">
+<span class="sig-name descname"><span class="pre">set_components_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PLS.set_components_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PLS.set_components_" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PLS.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PLS.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PLS.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="xb.Spage_main.PVComputation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xb.Spage_main.</span></span><span class="sig-name descname"><span class="pre">PVComputation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_factors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pca'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_reduction_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PVComputation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PVComputation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><dl class="simple">
+<dt>n_factors: int</dt><dd><p>Number of domain-specific factors to compute.</p>
+</dd>
+<dt>n_pv: int</dt><dd><p>Number of principal vectors.</p>
+</dd>
+<dt>dim_reduction_method_source: str</dt><dd><p>Dimensionality reduction method used for source data.</p>
+</dd>
+<dt>dim_reduction_target: str</dt><dd><p>Dimensionality reduction method used for source data.</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">source_components_</span></a><span class="classifier">numpy.ndarray, shape (n_pv, n_features)</span></dt><dd><p>Loadings of the source principal vectors ranked by similarity to the
+target. Components are in the row.</p>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">source_explained_variance_ratio_</span></a>: numpy.ndarray, shape (n_pv)</dt><dd><p>Explained variance of the source on each source principal vector.</p>
+</dd>
+<dt><a href="#id5"><span class="problematic" id="id6">target_components_</span></a><span class="classifier">numpy.ndarray, shape (n_pv, n_features)</span></dt><dd><p>Loadings of the target principal vectors ranked by similarity to the
+source. Components are in the row.</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">target_explained_variance_ratio_</span></a>: numpy.ndarray, shape (n_pv)</dt><dd><p>Explained variance of the target on each target principal vector.</p>
+</dd>
+<dt><a href="#id9"><span class="problematic" id="id10">cosine_similarity_matrix_</span></a>: numpy.ndarray, shape (n_pv, n_pv)</dt><dd><p>Scalar product between the source and the target principal vectors. Source
+principal vectors are in the rows while target’s are in the columns. If
+the domain adaptation is sensible, a diagonal matrix should be obtained.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PVComputation.compute_principal_vectors">
+<span class="sig-name descname"><span class="pre">compute_principal_vectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_factors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_factors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PVComputation.compute_principal_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PVComputation.compute_principal_vectors" title="Link to this definition"></a></dt>
+<dd><p>Compute the principal vectors between the already computed set of domain-specific
+factors, using approach presented in [1,2].
+IMPORTANT: Same genes have to be given for source and target, and in same order</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>source_factors: np.ndarray, shape (n_components, n_genes)</dt><dd><p>Source domain-specific factors.</p>
+</dd>
+<dt>target_factors: np.ndarray, shape (n_components, n_genes)</dt><dd><p>Target domain-specific factors.</p>
+</dd>
+</dl>
+</dd>
+<dt>results:</dt><dd><p>self: returns an instance of self.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PVComputation.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PVComputation.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PVComputation.fit" title="Link to this definition"></a></dt>
+<dd><p>Compute the common factors between two set of data.
+IMPORTANT: Same genes have to be given for source and target, and in same order</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>X_source<span class="classifier">np.ndarray, shape (n_components, n_genes)</span></dt><dd><p>Source dataset.</p>
+</dd>
+<dt>X_target<span class="classifier">np.ndarray, shape (n_components, n_genes)</span></dt><dd><p>Target dataset.</p>
+</dd>
+<dt>y_source<span class="classifier">np.ndarray, shape (n_components, 1) (optional, default to None)</span></dt><dd><p>Eventual output, in case one wants to give ouput (for instance PLS).</p>
+</dd>
+</dl>
+</dd>
+<dt>results:</dt><dd><p>self: returns an instance of self.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xb.Spage_main.PVComputation.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#PVComputation.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.PVComputation.transform" title="Link to this definition"></a></dt>
+<dd><p>Projects data onto principal vectors.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>X<span class="classifier">numpy.ndarray, shape (n_samples, n_genes)</span></dt><dd><p>Data to project.</p>
+</dd>
+<dt>project_on: int or bool, default to None</dt><dd><p>Where data should be projected on. 0 means source PVs, -1 means target PVs and 1 means
+both PVs. If None, set to class instance value.</p>
+</dd>
+</dl>
+</dd>
+<dt>results:</dt><dd><p>Projected data as a numpy.ndarray of shape (n_samples, n_factors).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.Spage_main.SpaGE">
+<span class="sig-prename descclassname"><span class="pre">xb.Spage_main.</span></span><span class="sig-name descname"><span class="pre">SpaGE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Spatial_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RNA_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genes_to_predict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#SpaGE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.SpaGE" title="Link to this definition"></a></dt>
+<dd><p>&#64;author: Tamim Abdelaal
+This function integrates two single-cell datasets, spatial and scRNA-seq, 
+and enhance the spatial data by predicting the expression of the spatially 
+unmeasured genes from the scRNA-seq data.</p>
+<dl class="simple">
+<dt>Args:  </dt><dd><dl class="simple">
+<dt>Spatial_data<span class="classifier">Dataframe</span></dt><dd><p>Normalized Spatial data matrix (cells X genes).</p>
+</dd>
+<dt>RNA_data<span class="classifier">Dataframe</span></dt><dd><p>Normalized scRNA-seq data matrix (cells X genes).</p>
+</dd>
+<dt>n_pv<span class="classifier">int</span></dt><dd><p>Number of principal vectors to find from the independently computed
+principal components, and used to align both datasets. This should
+be &lt;= number of shared genes between the two datasets.</p>
+</dd>
+<dt>genes_to_predict<span class="classifier">str array </span></dt><dd><p>list of gene names missing from the spatial data, to be predicted 
+from the scRNA-seq data. Default is the set of different genes 
+(columns) between scRNA-seq and spatial data.</p>
+</dd>
+</dl>
+</dd>
+<dt>results:  </dt><dd><dl class="simple">
+<dt>Imp_Genes: Dataframe</dt><dd><p>Matrix containing the predicted gene expressions for the spatial 
+cells. Rows are equal to the number of spatial data rows (cells), 
+and columns are equal to genes_to_predict,  .</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.Spage_main.gene_imputation">
+<span class="sig-prename descclassname"><span class="pre">xb.Spage_main.</span></span><span class="sig-name descname"><span class="pre">gene_imputation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sc_adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_genes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#gene_imputation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.gene_imputation" title="Link to this definition"></a></dt>
+<dd><p>Function to impute genes using SpaGe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.Spage_main.leave_one_out_validation">
+<span class="sig-prename descclassname"><span class="pre">xb.Spage_main.</span></span><span class="sig-name descname"><span class="pre">leave_one_out_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sc_adata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#leave_one_out_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.leave_one_out_validation" title="Link to this definition"></a></dt>
+<dd><p>Function to validate the imputation of genes using SpaGe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xb.Spage_main.process_dim_reduction">
+<span class="sig-prename descclassname"><span class="pre">xb.Spage_main.</span></span><span class="sig-name descname"><span class="pre">process_dim_reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pca'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/xb/Spage_main.html#process_dim_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.Spage_main.process_dim_reduction" title="Link to this definition"></a></dt>
+<dd><p>Default linear dimensionality reduction method. For each method, return a
+BaseEstimator instance corresponding to the method given as input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>method: str, default to ‘pca’</dt><dd><p>Method used for dimensionality reduction.
+Implemented: ‘pca’, ‘ica’, ‘fa’ (Factor Analysis), 
+‘nmf’ (Non-negative matrix factorisation), ‘sparsepca’ (Sparse PCA).</p>
+</dd>
+<dt>n_dim: int, default to 10</dt><dd><p>Number of domain-specific factors to compute.</p>
+</dd>
+</dl>
+</dd>
+<dt>results:</dt><dd><p>Classifier, i.e. BaseEstimator instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, nima rafati.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -7,7 +7,7 @@
 
 /* Optionally, you can adjust the sidebar width as well */
 .wy-side-nav-search {
-    width: 20%; /* Change this value to your desired width */
+    width: 100%; /* Change this value to your desired width */
 }
 
 /* Ensure the content is centered */

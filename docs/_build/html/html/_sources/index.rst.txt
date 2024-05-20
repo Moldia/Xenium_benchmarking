@@ -20,8 +20,4 @@ The Xenium In Situ platform is a new spatial transcriptomics product commerciali
    xb
    end-to-end_pipeline_optimized
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`search`
