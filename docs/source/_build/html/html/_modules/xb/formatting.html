@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xb.formatting &mdash; test 1.0.0. documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=58f5e731"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            test
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../xb.html">xb package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">test</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">xb.formatting</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for xb.formatting</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">mmread</span>
+<span class="kn">import</span> <span class="nn">tifffile</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">ConvexHull</span><span class="p">,</span> <span class="n">convex_hull_plot_2d</span>
+<span class="kn">from</span> <span class="nn">anndata</span> <span class="kn">import</span> <span class="n">AnnData</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">tifffile</span>
+<span class="kn">from</span> <span class="nn">xb.util</span> <span class="kn">import</span> <span class="n">get_image_shape</span><span class="p">,</span> <span class="n">extract_physical_sizes</span><span class="p">,</span> <span class="n">convert_polygons_to_label_image_xenium</span>
+
+
+<div class="viewcode-block" id="format_xenium_adata">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata">[docs]</a>
+<span class="k">def</span> <span class="nf">format_xenium_adata</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
+
+<span class="sd">        tag(str): sample tag to be added to be added to all cells formated from the section. </span>
+
+<span class="sd">        output_path(str): path where to store the resulting adata object.</span>
+
+
+<span class="sd">    results:</span>
+<span class="sd">        adata: AnnData object with the formated cells</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#decompress</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span>
+    <span class="n">ad</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+    <span class="n">cell_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="sa">r</span><span class="s2">&quot;/cells.csv&quot;</span><span class="p">)</span>
+    <span class="n">features</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">barcodes</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span><span class="n">obs</span><span class="o">=</span><span class="n">cell_info</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;index&#39;</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">,</span><span class="s1">&#39;reason_of_inclusion&#39;</span><span class="p">]</span>
+    <span class="n">panel_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/panel.tsv&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">,</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">]])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Gene&#39;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Gene&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span>
+    <span class="n">dict_annotation</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Gene&#39;</span><span class="p">],</span><span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Annotation&#39;</span><span class="p">]))</span>
+    <span class="n">dict_ENSEMBL</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Gene&#39;</span><span class="p">],</span><span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Ensembl ID&#39;</span><span class="p">]))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;Annotation&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_annotation</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;Ensembl ID&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_ENSEMBL</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;in_panel&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">panel_info</span><span class="p">[</span><span class="s1">&#39;Gene&#39;</span><span class="p">])</span>
+    <span class="n">transcripts</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/background.tiff&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="n">format_background</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">IM</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">TiffFile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/background.tiff&#39;</span><span class="p">)</span>
+    <span class="n">position1_series</span> <span class="o">=</span> <span class="n">IM</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">position1_series</span><span class="o">.</span><span class="n">axes</span>
+    <span class="n">position1</span> <span class="o">=</span> <span class="n">position1_series</span><span class="o">.</span><span class="n">asarray</span><span class="p">()</span>
+    <span class="n">image_downsize_fact</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2000</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">position1</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">pos1_resized</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">position1</span><span class="p">,(</span><span class="n">position1</span><span class="o">.</span><span class="n">shape</span><span class="o">/</span><span class="n">image_downsize_fact</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;spatial&quot;</span><span class="p">:{</span><span class="n">tag</span><span class="p">:{</span><span class="s2">&quot;scalefactors&quot;</span><span class="p">:{</span><span class="s2">&quot;tissue_um_to_pixel&quot;</span><span class="p">:</span><span class="mi">1</span><span class="o">/</span><span class="mf">0.2125</span><span class="p">,</span><span class="s2">&quot;tissue_hires_scalef&quot;</span><span class="p">:</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mf">0.2125</span><span class="o">*</span><span class="n">image_downsize_fact</span><span class="p">)},</span><span class="s2">&quot;images&quot;</span><span class="p">:{</span><span class="s2">&quot;hires&quot;</span><span class="p">:</span><span class="n">pos1_resized</span><span class="p">}}}}</span> 
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">transcripts</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">UMAP</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/umap/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_umap&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">UMAP</span><span class="p">)</span>
+        <span class="n">TSNE</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/tsne/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_tsne&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">TSNE</span><span class="p">)</span>
+        <span class="n">PCA</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/PCA/gene_expression_10_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_pca&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">PCA</span><span class="p">)</span>
+        <span class="n">clusters</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_graphclust/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;graph_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">clusters</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans2</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans2_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans2</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans3</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_3_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans3_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans3</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans4</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_4_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans4_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans4</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans5</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_5_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans5_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans5</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans6</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_6_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans6_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans6</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans7</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_7_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans7_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans7</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans8</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_8_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans8_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans8</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans9</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_9_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans9_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans9</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans10</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_10_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans10_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans10</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;UMAP and clusters_could not be recovered&#39;</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="n">tag</span><span class="o">+</span><span class="s1">&#39;.h5ad&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+    
+
+<div class="viewcode-block" id="format_xenium_adata_2023">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata_2023">[docs]</a>
+<span class="k">def</span> <span class="nf">format_xenium_adata_2023</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
+
+<span class="sd">        tag(str): sample tag to be added to be added to all cells formated from the section. </span>
+
+<span class="sd">        output_path(str): path where to store the resulting adata object.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata: AnnData object with the formated cells.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#decompress</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span>
+    <span class="n">ad</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+    <span class="n">cell_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="sa">r</span><span class="s2">&quot;/cells.csv&quot;</span><span class="p">)</span>
+    <span class="n">features</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">barcodes</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span><span class="n">obs</span><span class="o">=</span><span class="n">cell_info</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;index&#39;</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">,</span><span class="s1">&#39;reason_of_inclusion&#39;</span><span class="p">]</span>
+    <span class="c1"># Opening JSON file</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/gene_panel.json&#39;</span><span class="p">)</span>
+    <span class="c1"># returns JSON object as </span>
+    <span class="c1"># a dictionary</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="c1"># Iterating through the json</span>
+    <span class="c1"># list</span>
+    <span class="n">geness</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">idss</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">descriptorss</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">])):</span>
+        <span class="n">geness</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">idss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;newid_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">))</span> 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">descriptorss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;descriptor&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">descriptorss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">)</span>
+    <span class="c1"># Closing file</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">dict_inpanel</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">geness</span><span class="p">,</span><span class="n">descriptorss</span><span class="p">))</span>
+    <span class="n">dict_ENSEMBL</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">geness</span><span class="p">,</span><span class="n">idss</span><span class="p">))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;Ensembl ID&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_ENSEMBL</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;in_panel&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_inpanel</span><span class="p">)</span>
+    <span class="n">transcripts</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">transcripts</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">UMAP</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/umap/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_umap&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">UMAP</span><span class="p">)</span>
+        <span class="n">TSNE</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/tsne/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_tsne&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">TSNE</span><span class="p">)</span>
+        <span class="n">PCA</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/PCA/gene_expression_10_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_pca&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">PCA</span><span class="p">)</span>
+        <span class="n">clusters</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_graphclust/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;graph_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">clusters</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans2</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans2_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans2</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans3</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans3_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans3</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans4</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans4_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans4</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans5</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans5_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans5</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans6</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans6_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans6</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans7</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans7_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans7</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans8</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans8_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans8</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans9</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans9_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans9</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans10</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans10_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans10</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;UMAP and clusters_could not be recovered&#39;</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="n">tag</span><span class="o">+</span><span class="s1">&#39;.h5ad&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+
+
+<div class="viewcode-block" id="format_xenium_adata_mid_2023">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata_mid_2023">[docs]</a>
+<span class="k">def</span> <span class="nf">format_xenium_adata_mid_2023</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
+
+<span class="sd">        tag(str): sample tag to be added to be added to all cells formated from the section. </span>
+
+<span class="sd">        output_path(str): path where to store the resulting adata object.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata: AnnData object with the formated cells.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+    <span class="c1"># Path of the file</span>
+        <span class="n">extr</span><span class="o">=</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix.tar.gz&#39;</span>
+        <span class="c1"># Target directory</span>
+        <span class="n">extract_dir</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="c1"># Unzip the file </span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">unpack_archive</span><span class="p">(</span><span class="n">extr</span><span class="p">,</span> <span class="n">extract_dir</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;First decompressing done&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span>
+    <span class="n">ad</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+    <span class="n">cell_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="sa">r</span><span class="s2">&quot;/cells.csv&quot;</span><span class="p">)</span>
+    <span class="n">features</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">barcodes</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span><span class="n">obs</span><span class="o">=</span><span class="n">cell_info</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;index&#39;</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">,</span><span class="s1">&#39;reason_of_inclusion&#39;</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/gene_panel.json&#39;</span><span class="p">)</span> 
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">geness</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">idss</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">descriptorss</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">])):</span>
+        <span class="n">geness</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">idss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;newid_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">))</span> 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">descriptorss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;descriptor&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">descriptorss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">)</span>
+    <span class="c1"># Closing file</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">dict_inpanel</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">geness</span><span class="p">,</span><span class="n">descriptorss</span><span class="p">))</span>
+    <span class="n">dict_ENSEMBL</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">geness</span><span class="p">,</span><span class="n">idss</span><span class="p">))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;Ensembl ID&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_ENSEMBL</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;in_panel&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_inpanel</span><span class="p">)</span>
+    <span class="n">transcripts</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">transcripts</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+    <span class="c1"># Path of the file</span>
+        <span class="n">extr</span><span class="o">=</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis.tar.gz&#39;</span>
+        <span class="c1"># Target directory</span>
+        <span class="n">extract_dir</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="c1"># Unzip the file </span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">unpack_archive</span><span class="p">(</span><span class="n">extr</span><span class="p">,</span> <span class="n">extract_dir</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Analysis files decompressed&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">UMAP</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/umap/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_umap&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">UMAP</span><span class="p">)</span>
+        <span class="n">TSNE</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/tsne/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_tsne&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">TSNE</span><span class="p">)</span>
+        <span class="n">PCA</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/PCA/gene_expression_10_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_pca&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">PCA</span><span class="p">)</span>
+        <span class="n">clusters</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_graphclust/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;graph_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">clusters</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans2</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans2_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans2</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans3</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans3_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans3</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans4</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans4_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans4</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans5</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans5_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans5</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans6</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans6_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans6</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans7</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans7_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans7</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans8</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans8_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans8</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans9</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans9_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans9</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+        <span class="n">kmeans10</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans10_clusters&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">kmeans10</span><span class="p">[</span><span class="s1">&#39;Cluster&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;UMAP and clusters_could not be recovered&#39;</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;fov_name&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;fov_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="n">tag</span><span class="o">+</span><span class="s1">&#39;.h5ad&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+
+
+<div class="viewcode-block" id="format_background">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_background">[docs]</a>
+<span class="k">def</span> <span class="nf">format_background</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format OME-TIFF background mipped image to .tiff image</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">IM</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">TiffFile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/morphology_mip.ome.tif&#39;</span><span class="p">)</span>
+    <span class="n">position1_series</span> <span class="o">=</span> <span class="n">IM</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">position1_series</span><span class="o">.</span><span class="n">axes</span>
+    <span class="n">position1</span> <span class="o">=</span> <span class="n">position1_series</span><span class="o">.</span><span class="n">asarray</span><span class="p">()</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/background.tiff&#39;</span><span class="p">,</span><span class="n">position1</span><span class="p">)</span></div>
+
+    
+    
+<div class="viewcode-block" id="keep_nuclei">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.keep_nuclei">[docs]</a>
+<span class="k">def</span> <span class="nf">keep_nuclei</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span><span class="n">overlaps_nucleus</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cells in AnnData to keep only nuclear reads </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata1(AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        overlaps_nucleus(int): whether to keep only nuclear reads only (1) or cytoplasmic reads (0) in the redefinition of cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata: AnnData object with the formated cells</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">subset1</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;overlaps_nucleus&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">overlaps_nucleus</span><span class="p">,:]</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">],</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;feature_name&#39;</span><span class="p">])</span>
+    <span class="n">adataobs</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ct1</span><span class="o">.</span><span class="n">index</span><span class="p">),:]</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">ct1</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">adata1</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">adataobs</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">adataobs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span>
+    <span class="n">adataobs</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ind&#39;</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">ct1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ct1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">adataobs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]),:]</span>
+    <span class="n">adata1nuc</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ct1</span><span class="p">),</span><span class="n">obs</span><span class="o">=</span><span class="n">adataobs</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata1nuc</span></div>
+
+    
+<div class="viewcode-block" id="cell_area">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.cell_area">[docs]</a>
+<span class="k">def</span> <span class="nf">cell_area</span><span class="p">(</span><span class="n">adata_sp</span><span class="p">:</span> <span class="n">AnnData</span><span class="p">,</span><span class="n">pipeline_output</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata_sp : AnnData, annotated ``AnnData`` object with counts from spatial data.</span>
+
+<span class="sd">        pipeline_output : float, optional, boolean for whether to create the pipeline output. </span>
+
+<span class="sd">    results:</span>
+<span class="sd">        density : float</span>
+
+<span class="sd">        Cell density (cells/um)</span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+
+    <span class="n">hull</span> <span class="o">=</span> <span class="n">ConvexHull</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adata_sp</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">]]))</span>
+    <span class="n">area</span><span class="o">=</span><span class="n">hull</span><span class="o">.</span><span class="n">area</span><span class="c1">#*10e6</span>
+    <span class="k">return</span> <span class="n">area</span></div>
+
+
+
+<div class="viewcode-block" id="generate_random_color_variation">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.generate_random_color_variation">[docs]</a>
+<span class="k">def</span> <span class="nf">generate_random_color_variation</span><span class="p">(</span><span class="n">base_color</span><span class="p">,</span> <span class="n">deviation</span><span class="o">=</span><span class="mf">0.17</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generate variations of a reference color</span>
+<span class="sd">        </span>
+<span class="sd">    Args:</span>
+<span class="sd">        base_color (str):reference hex color.</span>
+
+<span class="sd">        deviation(float): deviation from the base color that the resulting color should have.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        modified_hex_color(str):resulting hex color.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">base_rgb</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">hex2color</span><span class="p">(</span><span class="n">base_color</span><span class="p">)</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">rgb_to_hsv</span><span class="p">(</span><span class="n">base_rgb</span><span class="p">)</span>
+
+    <span class="c1"># Make random adjustments to the hue, saturation, and value</span>
+    <span class="n">h</span> <span class="o">+=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">deviation</span><span class="p">,</span> <span class="n">deviation</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">s</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">deviation</span><span class="p">,</span> <span class="n">deviation</span><span class="p">)))</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">v</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">deviation</span><span class="p">,</span> <span class="n">deviation</span><span class="p">)))</span>
+
+    <span class="c1"># Ensure the values are within the valid HSV range</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">h</span> <span class="o">%</span> <span class="mf">1.0</span>
+
+    <span class="n">modified_rgb</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+    <span class="n">modified_hex_color</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">to_hex</span><span class="p">(</span><span class="n">modified_rgb</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">modified_hex_color</span></div>
+
+
+
+<div class="viewcode-block" id="format_data_neighs">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_data_neighs">[docs]</a>
+<span class="k">def</span> <span class="nf">format_data_neighs</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">condit</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by counting the neighnoring cell types of each cell</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        sname(str): column in adata.obs where the cluster assigned to each cells are stored.</span>
+
+<span class="sd">        neighs(int): number of neighbors to consider when computing neighboring cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1 (AnnData): AnnData object with neighboring cell types included in a cell-by-celltype matrix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s2">&quot;spatial&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">Y</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+    <span class="n">adata_copy_int</span><span class="o">=</span><span class="n">adata</span>
+    <span class="n">sq</span><span class="o">.</span><span class="n">gr</span><span class="o">.</span><span class="n">spatial_neighbors</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="p">,</span><span class="n">n_neighs</span><span class="o">=</span><span class="n">neighs</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())])</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">tr</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obsp</span><span class="p">[</span><span class="s1">&#39;spatial_distances&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">tr2</span><span class="o">=</span><span class="n">tr</span><span class="o">&gt;</span><span class="mi">0</span>
+    <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()):</span>
+        <span class="n">epv</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">==</span><span class="n">g</span><span class="o">*</span><span class="mi">1</span>
+        <span class="n">opv</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">epv</span><span class="o">*</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[:,</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">tr2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">opv</span><span class="p">)</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">expmat</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="n">adata1</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">expmat</span><span class="p">,</span><span class="n">obs</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+    <span class="c1">#adata1.obs[&#39;sample&#39;]=condit</span>
+    <span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;condition&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">condit</span>
+    <span class="k">return</span> <span class="n">adata1</span></div>
+
+
+<div class="viewcode-block" id="format_data_neighs_colapse">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_data_neighs_colapse">[docs]</a>
+<span class="k">def</span> <span class="nf">format_data_neighs_colapse</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">condit</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)</span>
+<span class="sd">        </span>
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        sname(str): column in adata.obs where sample is stored.</span>
+
+<span class="sd">        condit(str): column in adata.obs where the sample each cell belongs to is stored.</span>
+
+<span class="sd">        neighs(int): number of neighbors to consider when collapsing the expression of neighboring cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1 (AnnData): AnnData object with expression of cells collapsed from neighboring cells.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s2">&quot;spatial&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">Y</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+    <span class="n">adata_copy_int</span><span class="o">=</span><span class="n">adata</span>
+    <span class="n">sq</span><span class="o">.</span><span class="n">gr</span><span class="o">.</span><span class="n">spatial_neighbors</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="p">,</span><span class="n">n_neighs</span><span class="o">=</span><span class="n">neighs</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">tr</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obsp</span><span class="p">[</span><span class="s1">&#39;spatial_distances&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">tr2</span><span class="o">=</span><span class="n">tr</span><span class="o">&gt;</span><span class="mi">0</span>
+    <span class="n">exp</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+    <span class="c1">#tdd=tr2.todense()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="n">tr2</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata1</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">result</span><span class="p">,</span><span class="n">obs</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata1</span></div>
+
+
+
+
+<div class="viewcode-block" id="format_xenium_adata_final">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata_final">[docs]</a>
+<span class="k">def</span> <span class="nf">format_xenium_adata_final</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">,</span><span class="n">use_parquet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored, if requested.</span>
+
+<span class="sd">        tag(str): sample tag to be added to be added to all cells formated from the section.</span>
+
+<span class="sd">        output_path(str): path where to store the resulting adata object.</span>
+
+<span class="sd">        use_parquet(boolean): whether to use parquet files as an input to generate the AnnData File. (it&#39;s way faster).</span>
+
+<span class="sd">        save(boolean): whether to save the resulting object.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata: AnnData object with the formated cells</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cells.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/matrix.mtx&#39;</span><span class="p">)</span>
+    <span class="n">ad</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+    <span class="n">cell_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="sa">r</span><span class="s2">&quot;/cells.csv&quot;</span><span class="p">)</span>
+    <span class="n">features</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/features.tsv&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">barcodes</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/cell_feature_matrix/barcodes.tsv&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span><span class="n">obs</span><span class="o">=</span><span class="n">cell_info</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;index&#39;</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">,</span><span class="s1">&#39;reason_of_inclusion&#39;</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/gene_panel.json&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">geness</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">idss</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">descriptorss</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">])):</span>
+        <span class="n">geness</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">idss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;newid_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">))</span> 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">descriptorss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">][</span><span class="s1">&#39;descriptor&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">descriptorss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">dict_inpanel</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">geness</span><span class="p">,</span><span class="n">descriptorss</span><span class="p">))</span>
+    <span class="n">dict_ENSEMBL</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">geness</span><span class="p">,</span><span class="n">idss</span><span class="p">))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;Ensembl ID&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_ENSEMBL</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;in_panel&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dict_inpanel</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_parquet</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="n">transcripts</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.parquet&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+        <span class="n">transcripts</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/transcripts.csv&#39;</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">transcripts</span>
+    
+    <span class="n">UMAP</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/umap/gene_expression_2_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">id2UMAP1</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">UMAP</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">UMAP</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">id2UMAP2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">UMAP</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">UMAP</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_umap_original&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2UMAP1</span><span class="p">),</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2UMAP2</span><span class="p">)])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">PCA</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/analysis/pca/gene_expression_10_components/projection.csv&#39;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">id2PCA1</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">PCA</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">PCA</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">id2PCA2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">PCA</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">PCA</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_pca_10_comp&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2PCA1</span><span class="p">),</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2PCA2</span><span class="p">)])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">dici</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;/analysis/clustering/gene_expression_graphclust/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;graph_clusters&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_2_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans2&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_3_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans3&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_4_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans4&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_5_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans5&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_6_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans6&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_7_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans7&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_8_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans8&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_9_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans9&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;/analysis/clustering/gene_expression_kmeans_10_clusters/clusters.csv&#39;</span><span class="p">:</span><span class="s1">&#39;kmeans10&#39;</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">subpath</span> <span class="ow">in</span> <span class="n">dici</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">clust</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="n">subpath</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">clustdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">clust</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">clust</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">dici</span><span class="p">[</span><span class="n">subpath</span><span class="p">]]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">clustdict</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;fov_name&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;fov_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">],</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">]])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">tag</span>
+    <span class="k">if</span> <span class="n">save</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="n">tag</span><span class="o">+</span><span class="s1">&#39;_original.h5ad&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+
+<div class="viewcode-block" id="keep_nuclei_and_quality">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.keep_nuclei_and_quality">[docs]</a>
+<span class="k">def</span> <span class="nf">keep_nuclei_and_quality</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span><span class="n">tag</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">min_quality</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">output_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cell expression based on nuclei expression an quality of detected reads</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.</span>
+
+<span class="sd">        tag (str): sample tag to added in the name of the saved filed, if needed.</span>
+
+<span class="sd">        save(boolean): whether to save the resulting files.</span>
+
+<span class="sd">        output_path(str): if needed, where to save the resulting files.</span>
+
+<span class="sd">        max_nucleus_distance(float): Maximum distance from the nuclei for reads to be kept in redefined cells.</span>
+
+<span class="sd">        min_quality(float): Define minimum quality (qv) of reads to keep in the analysis. </span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">max_nucleus_distance</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">subset1</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;overlaps_nucleus&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">overlaps_nucleus</span><span class="p">,:]</span>
+    <span class="k">if</span> <span class="n">max_nucleus_distance</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">subset1</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;nucleus_distance&#39;</span><span class="p">]</span><span class="o">&lt;</span><span class="n">max_nucleus_distance</span><span class="p">,:]</span>
+    <span class="n">subset1</span><span class="o">=</span><span class="n">subset1</span><span class="p">[</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;qv&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="n">min_quality</span><span class="p">]</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">],</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;feature_name&#39;</span><span class="p">])</span>
+    <span class="n">adataobs</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ct1</span><span class="o">.</span><span class="n">index</span><span class="p">),:]</span>
+    <span class="n">av</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ct1</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span><span class="c1">#.isin(adata1.var.index)</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">ct1</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">av</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]]</span>
+    <span class="n">adataobs</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">adataobs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span>
+    <span class="n">adataobs</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ind&#39;</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">ct1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ct1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">adataobs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]),:]</span>
+    <span class="n">adata1nuc</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ct1</span><span class="p">),</span><span class="n">obs</span><span class="o">=</span><span class="n">adataobs</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">av</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">save</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="n">adata1nuc</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="n">tag</span><span class="o">+</span><span class="s1">&#39;_filtered.h5ad&#39;</span><span class="p">)</span>
+    <span class="n">adata1nuc</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata1nuc</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">],</span><span class="n">adata1nuc</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">]])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">adata1nuc</span></div>
+
+
+<div class="viewcode-block" id="format_to_adata">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_to_adata">[docs]</a>
+<span class="k">def</span> <span class="nf">format_to_adata</span><span class="p">(</span><span class="n">files</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span><span class="n">output_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">use_parquet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">min_quality</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).</span>
+
+<span class="sd">        output_path(str): path where to store the resulting adata object.</span>
+
+<span class="sd">        use_parquet(boolean): whether to use parquet files as an input to generate the AnnData File. (it&#39;s way faster).</span>
+
+<span class="sd">        save(boolean): whether to save the resulting object.</span>
+
+<span class="sd">        max_nucleus_distance: Maximum distance from the nuclei for reads to be kept in redefined cells.</span>
+
+<span class="sd">        min_quality(float): Define minimum quality (qv) of reads to keep in the analysis. </span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata: AnnData object with the formated cells with only reads that passed the filters established.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">alladata</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">tag</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Formatting </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">=</span><span class="n">format_xenium_adata_final</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">,</span><span class="n">use_parquet</span><span class="o">=</span><span class="n">use_parquet</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Filter reads&#39;</span><span class="p">)</span>
+        <span class="n">adata_f1</span><span class="o">=</span><span class="n">keep_nuclei_and_quality</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="n">max_nucleus_distance</span><span class="p">,</span><span class="n">min_quality</span><span class="o">=</span><span class="n">min_quality</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span><span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="c1">#xf.format_background(f)</span>
+        <span class="n">alladata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adata_f1</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">alladata</span><span class="p">,</span><span class="n">join</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">=</span><span class="n">alladata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">var</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;total_counts&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;expressed_genes&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;ENSMBL_ID&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">save</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;combined_filtered.h5ad&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="prep_xenium_data_for_baysor">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.prep_xenium_data_for_baysor">[docs]</a>
+<span class="k">def</span> <span class="nf">prep_xenium_data_for_baysor</span><span class="p">(</span><span class="n">XENIUM_DIR</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">OUT_DIR</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">CROP</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">COORDS</span><span class="o">=</span><span class="p">[</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">16000</span><span class="p">,</span> <span class="mi">15000</span><span class="p">,</span> <span class="mi">16000</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium datasets for its use for baysor segmentation</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        XENIUM_DIR(list): path where  the Xenium output is saved for each sample (output from the machine).</span>
+
+<span class="sd">        OUT_DIR(str): path where to store the resulting adata object.</span>
+
+<span class="sd">        CROP(boolean): whether to use a small Region of interest for segmentation.</span>
+
+<span class="sd">        COORDS(list): if CROP is used, coordinates of the crop in the form of [YMIN,YMAX,XMIN,XMAX].</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">OUT_DIR</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">OUT_DIR</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">XENIUM_DIR</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:][</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;_baysor&#39;</span><span class="p">)</span>
+    <span class="n">XENIUM_DIR</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">XENIUM_DIR</span><span class="p">)</span>
+    <span class="c1"># Get shape of full image</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">CROP</span><span class="p">:</span>
+        <span class="n">YMAX</span><span class="p">,</span> <span class="n">XMAX</span> <span class="o">=</span> <span class="n">get_image_shape</span><span class="p">(</span><span class="n">XENIUM_DIR</span> <span class="o">/</span> <span class="s2">&quot;morphology.ome.tif&quot;</span><span class="p">)</span> 
+        <span class="n">YMIN</span><span class="p">,</span> <span class="n">XMIN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="c1"># Or define a crop</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">YMIN</span><span class="o">=</span><span class="n">COORDS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">YMAX</span><span class="o">=</span><span class="n">COORDS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">XMIN</span><span class="o">=</span><span class="n">COORDS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">XMAX</span><span class="o">=</span><span class="n">COORDS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+
+    <span class="c1">#-------------------------------------------------------------</span>
+
+    <span class="c1"># Create output directory</span>
+    <span class="n">OUT_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 1: Output directory created&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load spots</span>
+    <span class="n">spots</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">XENIUM_DIR</span> <span class="o">/</span> <span class="s2">&quot;transcripts.parquet&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 2: Spots loaded&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert physical units of spots to pixel units</span>
+    <span class="n">phys_sizes</span> <span class="o">=</span> <span class="n">extract_physical_sizes</span><span class="p">(</span><span class="n">XENIUM_DIR</span> <span class="o">/</span> <span class="s2">&quot;morphology.ome.tif&quot;</span><span class="p">)</span>
+    <span class="n">phys_sizes</span> <span class="o">=</span> <span class="n">phys_sizes</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">phys_sizes</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">phys_sizes</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">phys_sizes</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">assert</span> <span class="n">phys_sizes</span><span class="p">[</span><span class="s2">&quot;PhysicalSizeX&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">phys_sizes</span><span class="p">[</span><span class="s2">&quot;PhysicalSizeY&quot;</span><span class="p">]</span>
+    <span class="n">resolution</span> <span class="o">=</span> <span class="n">phys_sizes</span><span class="p">[</span><span class="s2">&quot;PhysicalSizeX&quot;</span><span class="p">]</span>
+    <span class="n">spots</span><span class="p">[</span><span class="s2">&quot;x_location&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">resolution</span>
+    <span class="n">spots</span><span class="p">[</span><span class="s2">&quot;y_location&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">resolution</span>
+    <span class="c1"># Note: we scale z µm the same way as x and y because the physical length for z pixels is larger than for xy pixels</span>
+    <span class="c1"># and Baysor assumes euclidean distances in space.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;z_location&quot;</span> <span class="ow">in</span> <span class="n">spots</span><span class="p">):</span> 
+        <span class="n">spots</span><span class="p">[</span><span class="s2">&quot;z_location&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">resolution</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 3: Spots converted to pixel units&quot;</span><span class="p">)</span>  
+    <span class="k">if</span> <span class="n">CROP</span><span class="p">:</span>
+        <span class="c1"># Subset spots to crop</span>
+        <span class="n">spots</span> <span class="o">=</span> <span class="n">spots</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">spots</span><span class="p">[</span><span class="s2">&quot;y_location&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">YMIN</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">spots</span><span class="p">[</span><span class="s2">&quot;y_location&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">YMAX</span><span class="p">)</span> <span class="o">&amp;</span> 
+            <span class="p">(</span><span class="n">spots</span><span class="p">[</span><span class="s2">&quot;x_location&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">XMIN</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">spots</span><span class="p">[</span><span class="s2">&quot;x_location&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">XMAX</span><span class="p">)</span>
+        <span class="p">]</span>
+        
+        <span class="c1"># Offset positions if YMIN, XMIN are not 0</span>
+        <span class="n">spots</span><span class="p">[</span><span class="s2">&quot;x_location&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">XMIN</span>
+        <span class="n">spots</span><span class="p">[</span><span class="s2">&quot;y_location&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">YMIN</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 4: Spots cropped&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load polygons</span>
+    <span class="n">df_nuc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">XENIUM_DIR</span> <span class="o">/</span> <span class="s2">&quot;nucleus_boundaries.parquet&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 5: Polygons loaded&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert physical units of polygons to pixel units</span>
+    <span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_x&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">resolution</span>
+    <span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_y&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">resolution</span>
+
+    <span class="k">if</span> <span class="n">CROP</span><span class="p">:</span>
+        <span class="c1"># Subset polygons to crop, NOTE: Polygons at border will be cut off</span>
+        <span class="n">df_nuc</span> <span class="o">=</span> <span class="n">df_nuc</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_y&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">YMIN</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_y&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">YMAX</span><span class="p">)</span> <span class="o">&amp;</span> 
+            <span class="p">(</span><span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_x&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">XMIN</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_x&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">XMAX</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># Offset positions if YMIN, XMIN are not 0</span>
+        <span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_x&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">XMIN</span>
+        <span class="n">df_nuc</span><span class="p">[</span><span class="s2">&quot;vertex_y&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">YMIN</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 6: Polygons cropped&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create label image</span>
+    
+    <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">df_nuc</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">])</span>
+    <span class="n">unique_numbers</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">factorize</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df_nuc</span><span class="p">[</span><span class="s1">&#39;label_id&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">unique_numbers</span><span class="o">+</span><span class="mi">1</span>
+    
+    <span class="n">label_image</span> <span class="o">=</span> <span class="n">convert_polygons_to_label_image_xenium</span><span class="p">(</span><span class="n">df_nuc</span><span class="p">,</span> <span class="p">(</span><span class="n">YMAX</span><span class="o">-</span><span class="n">YMIN</span><span class="p">,</span> <span class="n">XMAX</span><span class="o">-</span><span class="n">XMIN</span><span class="p">),</span><span class="n">label_col</span><span class="o">=</span><span class="s1">&#39;label_id&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 7: Label image created&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save spots, polygons and label image</span>
+    <span class="n">spots</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">OUT_DIR</span> <span class="o">/</span> <span class="s2">&quot;spots.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 8: Spots saved&quot;</span><span class="p">)</span>
+    <span class="n">df_nuc</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">OUT_DIR</span> <span class="o">/</span> <span class="s2">&quot;polygons.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 9: Polygons saved&quot;</span><span class="p">)</span>
+    <span class="n">tifffile</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">OUT_DIR</span> <span class="o">/</span> <span class="s2">&quot;label_image.tif&quot;</span><span class="p">,</span> <span class="n">label_image</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CHECKPOINT 10: Label image saved&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="batch_prep_xenium_data_for_baysor">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.batch_prep_xenium_data_for_baysor">[docs]</a>
+<span class="k">def</span> <span class="nf">batch_prep_xenium_data_for_baysor</span><span class="p">(</span><span class="n">files</span><span class="p">,</span><span class="n">outpath</span><span class="p">,</span><span class="n">CROP</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">COORDS</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">prep_xenium_data_for_baysor</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span><span class="n">CROP</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="format_baysor_output_to_adata">
+<a class="viewcode-back" href="../../xb.html#xb.formatting.format_baysor_output_to_adata">[docs]</a>
+<span class="k">def</span> <span class="nf">format_baysor_output_to_adata</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">output_path</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format baysor&#39;s output to anndata</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path (AnnData): path to the folder where baysor&#39;s output is stored</span>
+<span class="sd">        output_path(str): path where to store the generated adata</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">read_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/segmentation.csv&#39;</span><span class="p">)</span>
+    <span class="n">cell_stats</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/segmentation_cell_stats.csv&#39;</span><span class="p">)</span>
+    <span class="n">read_info</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">read_info</span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">]</span>
+    <span class="n">expression</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="n">read_info</span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">],</span><span class="n">read_info</span><span class="p">[</span><span class="s1">&#39;gene&#39;</span><span class="p">])</span>
+    <span class="n">cell_stats</span><span class="o">=</span><span class="n">cell_stats</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">cell_stats</span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">expression</span><span class="o">.</span><span class="n">index</span><span class="p">),:]</span>
+    <span class="n">expression</span><span class="o">=</span><span class="n">expression</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">expression</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">cell_stats</span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">]),:]</span>
+    <span class="n">expression</span><span class="o">=</span><span class="n">expression</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">cell_stats</span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">],:]</span>
+    <span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">=</span><span class="n">cell_stats</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">read_info</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">]])</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;cell&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;cell&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:][</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;.h5ad&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, nima rafati.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

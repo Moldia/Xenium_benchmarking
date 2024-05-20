@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xb.simulating &mdash; test 1.0.0. documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=58f5e731"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            test
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../xb.html">xb package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">test</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">xb.simulating</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for xb.simulating</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">mmread</span>
+<span class="kn">import</span> <span class="nn">tifffile</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">ConvexHull</span><span class="p">,</span> <span class="n">convex_hull_plot_2d</span>
+<span class="kn">from</span> <span class="nn">anndata</span> <span class="kn">import</span> <span class="n">AnnData</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mutual_info_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">fowlkes_mallows_score</span>
+
+<div class="viewcode-block" id="missegmentation_simulation">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.missegmentation_simulation">[docs]</a>
+<span class="k">def</span> <span class="nf">missegmentation_simulation</span><span class="p">(</span><span class="n">adata_sc_sub</span><span class="p">,</span><span class="n">missegmentation_percentage</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Simulate missegmentation using a reference single cell data in adata form. </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata_sc_sub (AnnData): AnnData object with the cells of the experiment before simulating the missegmentation   </span>
+<span class="sd">        missegmentation_percentage (float): percentage of cells (%) that are presenting missegmentation</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata_sc_sub(AnnData): AnnData object with the cells where missegmentation has been simulated according to input parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">exp</span><span class="o">=</span><span class="n">adata_sc_sub</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">missegmentation_percentage</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">cells_affected</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">missegmentation_percentage</span><span class="o">/</span><span class="mi">100</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">cells_affected</span><span class="p">)):</span>
+            <span class="n">missegmentation_importance</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mf">0.1</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">index</span><span class="p">),</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">index</span><span class="p">),</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">exp</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">target</span><span class="p">,:]</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">target</span><span class="p">,:]</span><span class="o">+</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">source</span><span class="p">,:]</span><span class="o">*</span><span class="n">missegmentation_importance</span><span class="p">)</span>
+        <span class="n">adata_sc_sub</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">adata_sc_sub</span></div>
+
+
+<div class="viewcode-block" id="noise_adder">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.noise_adder">[docs]</a>
+<span class="k">def</span> <span class="nf">noise_adder</span><span class="p">(</span><span class="n">adata_sc</span><span class="p">,</span><span class="n">percentage_of_noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Add noise to a single cell data inputed according to input parameters </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata_sc (AnnData): AnnData object with the cells of the experiment before adding noise</span>
+<span class="sd">        percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata_sc(AnnData): AnnData object with the cells where noise has been added</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">noise_events</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">percentage_of_noise</span><span class="o">/</span><span class="mi">100</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">noise_events</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">change</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span><span class="o">=</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span><span class="o">+</span><span class="n">change</span>
+    <span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">return</span> <span class="n">adata_sc</span></div>
+
+
+<div class="viewcode-block" id="subset_of_single_cell">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.subset_of_single_cell">[docs]</a>
+<span class="k">def</span> <span class="nf">subset_of_single_cell</span><span class="p">(</span><span class="n">adata_sc_sub</span><span class="p">,</span><span class="n">markers</span><span class="p">,</span><span class="n">random_markers_percentage</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                          <span class="n">reads_x_cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">number_of_markers</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                         <span class="n">n_reads_x_gene</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span><span class="n">percentage_of_noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">ms_percentage</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Transform a single cell data to present spatial characteristics</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata_sc_sub (AnnData): AnnData object with the cells obtained from single cell datasets before transforming them into spatial-like datasets  </span>
+<span class="sd">        markers (DataFrame): dataframe incluing the main markers identified per cluster per cluster</span>
+<span class="sd">        random_markers_percentage (float): percentage of non-marker genes included randomly in the genes selected for the panel</span>
+<span class="sd">        reads_x_cell=None</span>
+<span class="sd">        n_reads_x_gene (int,None): if int, final number of reads/cells required in the spatial-like datasets. If None, cells are not transformed</span>
+<span class="sd">        number_of_markers (int): total number of genes to be included in the simulated dataset.</span>
+<span class="sd">        n_reads_x_gene (int): final number of reads/gene required in the spatial-like datasets</span>
+<span class="sd">        percentage_of_noise (float): percentage of noise events (%) in relation to the total amounts of cells</span>
+<span class="sd">        ms_percentage (float): percentage of cells (%) that are presenting missegmentation</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata_sc(AnnData): AnnData object with the cells after transfroming them into spatial-like datasets</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+                             
+    <span class="n">mk</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">number_of_markers_x_cluster</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">number_of_markers</span><span class="o">/</span><span class="n">markers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span>  <span class="n">markers</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">number_of_markers_x_cluster</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">markers</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">mk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markers</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="n">col</span><span class="p">])</span>
+    <span class="n">mk</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">mk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mk</span><span class="p">)</span><span class="o">&gt;</span><span class="n">number_of_markers</span><span class="p">:</span>
+        <span class="n">mk</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">mk</span><span class="p">,</span><span class="n">number_of_markers</span><span class="p">)</span>
+    
+    <span class="n">sampling_amount</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">mk</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">random_markers_percentage</span><span class="o">/</span><span class="mi">100</span><span class="p">)))</span>
+    <span class="n">newg</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">adata_sc_sub</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">),</span><span class="n">sampling_amount</span><span class="p">)</span>
+    <span class="n">sel</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">mk</span><span class="p">)),</span><span class="nb">len</span><span class="p">(</span><span class="n">newg</span><span class="p">))</span>
+    <span class="n">ii</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">sel</span><span class="p">:</span>
+        <span class="n">mk</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">=</span><span class="n">newg</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+        <span class="n">ii</span><span class="o">=</span><span class="n">ii</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">mk</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">mk</span><span class="p">)</span>
+    <span class="n">adata_sc</span><span class="o">=</span><span class="n">adata_sc_sub</span><span class="p">[:,</span><span class="n">adata_sc_sub</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">mk</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+     <span class="c1">###THIS STEP MAKES MORE EXPRESSED GENES TO BE LESS DETECTED </span>
+    <span class="n">norm_factors</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="mf">99.9</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+    
+    <span class="c1">#number of reads per gene (aprox)</span>
+   <span class="c1">##WE HAVE COMENTED THIS# adata_sc.X=np.array(adata_sc.to_df().div(np.array(norm_factors)/n_reads_x_gene,axis=1).astype(int))</span>
+    <span class="c1"># segmentation_simulator</span>
+    <span class="n">adata_sc</span><span class="o">=</span><span class="n">missegmentation_simulation</span><span class="p">(</span><span class="n">adata_sc</span><span class="p">,</span><span class="n">missegmentation_percentage</span><span class="o">=</span><span class="n">ms_percentage</span><span class="p">)</span>
+    <span class="c1">###ADD RANDOM NOISE</span>
+    <span class="n">adata_sc</span><span class="o">=</span><span class="n">noise_adder</span><span class="p">(</span><span class="n">adata_sc</span><span class="p">,</span><span class="n">percentage_of_noise</span><span class="o">=</span><span class="n">percentage_of_noise</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">reads_x_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">downsample_counts</span><span class="p">(</span><span class="n">adata_sc</span><span class="p">,</span><span class="n">counts_per_cell</span><span class="o">=</span><span class="n">reads_x_cell</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata_sc</span></div>
+
+
+<div class="viewcode-block" id="entropy">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.entropy">[docs]</a>
+<span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="n">clustering</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute entropy</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clustering (list): list of clusters assigned to cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        entropy_value(float): entropy value computed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">_</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">clustering</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">proportions</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">clustering</span><span class="p">)</span>
+    <span class="n">entropy_value</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">proportions</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">proportions</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">entropy_value</span></div>
+
+
+<div class="viewcode-block" id="compute_vi">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.compute_vi">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_vi</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute variation of information for comparing two different clusterings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ground_truth (list): list of reference clusters given to cells profiled.</span>
+
+<span class="sd">        predicted (list): list of predicted/computed clusters for cells profiled.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        vi_score(float): variation of information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    
+    <span class="n">mi</span> <span class="o">=</span> <span class="n">mutual_info_score</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">)</span>
+    <span class="n">h_gt</span> <span class="o">=</span> <span class="n">entropy</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">)</span>
+    <span class="n">h_pred</span> <span class="o">=</span> <span class="n">entropy</span><span class="p">(</span><span class="n">predicted</span><span class="p">)</span>
+    <span class="n">vi_score</span> <span class="o">=</span> <span class="n">h_gt</span> <span class="o">+</span> <span class="n">h_pred</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">mi</span>
+    <span class="k">return</span> <span class="n">vi_score</span></div>
+
+
+
+
+<div class="viewcode-block" id="compute_fmi">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.compute_fmi">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_fmi</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute fowlkes mallows index for two different clusterings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ground_truth (list): list of reference clusters given to cells profiled.</span>
+
+<span class="sd">        predicted (list): list of predicted/computed clusters for cells profiled.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        fmi_score(float): fowlkes mallows index</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+
+    <span class="n">fmi_score</span> <span class="o">=</span> <span class="n">fowlkes_mallows_score</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">predicted</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fmi_score</span></div>
+
+
+
+
+<div class="viewcode-block" id="keep_nuclei_and_quality">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.keep_nuclei_and_quality">[docs]</a>
+<span class="k">def</span> <span class="nf">keep_nuclei_and_quality</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span><span class="n">overlaps_nucleus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">qvmin</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cell expression based on nuclei expression an quality of detected reads</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.</span>
+
+<span class="sd">        overlaps_nucleus(int): Keep reads overlapping nucleus only (1) or all (2).</span>
+
+<span class="sd">        qvmin(int): Define minimum quality (qv) of reads to keep in the analysis. </span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">overlaps_nucleus</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">subset1</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">][</span><span class="s1">&#39;overlaps_nucleus&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">overlaps_nucleus</span><span class="p">,:]</span>
+    <span class="k">if</span> <span class="n">overlaps_nucleus</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">subset1</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span>
+    <span class="n">subset1</span><span class="o">=</span><span class="n">subset1</span><span class="p">[</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;qv&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="n">qvmin</span><span class="p">]</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">],</span><span class="n">subset1</span><span class="p">[</span><span class="s1">&#39;feature_name&#39;</span><span class="p">])</span>
+    <span class="n">adataobs</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ct1</span><span class="o">.</span><span class="n">index</span><span class="p">),:]</span>
+    <span class="n">av</span><span class="o">=</span><span class="n">adata1</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">adata1</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ct1</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span><span class="c1">#.isin(adata1.var.index)</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">ct1</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">av</span><span class="p">]</span>
+    <span class="n">adataobs</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">adataobs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]</span>
+    <span class="n">adataobs</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ind&#39;</span>
+    <span class="n">ct1</span><span class="o">=</span><span class="n">ct1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ct1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">adataobs</span><span class="p">[</span><span class="s1">&#39;cell_id&#39;</span><span class="p">]),:]</span>
+    <span class="n">adata1nuc</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ct1</span><span class="p">),</span><span class="n">obs</span><span class="o">=</span><span class="n">adataobs</span><span class="p">)</span><span class="c1">#,var=adata1.var)</span>
+    <span class="k">return</span> <span class="n">adata1nuc</span></div>
+
+
+<span class="c1"># using a baseline, modify parameters one by one</span>
+<span class="c1"># making it into a function</span>
+<div class="viewcode-block" id="allcombs">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.allcombs">[docs]</a>
+<span class="k">def</span> <span class="nf">allcombs</span><span class="p">(</span><span class="n">adata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Simulate preprocessing workflows and extract results based on it</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        allres(DataFrame): Clustering obtained with different preprocessing workflows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">default</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;nuc&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;npcs&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;neighs&#39;</span><span class="p">:</span><span class="mi">16</span><span class="p">,</span><span class="s1">&#39;qvs&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;scale&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span><span class="s1">&#39;hvgs&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span><span class="s1">&#39;norm&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span><span class="s1">&#39;lg&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">}</span> 
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">allres</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;first run&#39;</span><span class="p">)</span>
+    <span class="n">nucdic</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="s1">&#39;nuc&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="s1">&#39;cell&#39;</span><span class="p">}</span>
+    <span class="n">neighs</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">20</span><span class="p">]</span>
+    <span class="n">npcs</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span>
+    <span class="n">ts</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">qvs</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">]</span>
+    <span class="n">scales</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span><span class="kc">False</span><span class="p">]</span>
+    <span class="n">hvgs</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span><span class="kc">True</span><span class="p">]</span>
+    <span class="n">norm</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span><span class="kc">False</span><span class="p">]</span>
+    <span class="n">logs</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span><span class="kc">False</span><span class="p">]</span>
+    <span class="n">perc</span><span class="o">=</span><span class="mf">0.1</span>
+    <span class="k">for</span> <span class="n">qv</span> <span class="ow">in</span> <span class="n">qvs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">nuc</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">nuc</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">adata_f1</span><span class="o">=</span><span class="n">keep_nuclei_and_quality</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span><span class="n">overlaps_nucleus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">qvmin</span><span class="o">=</span><span class="n">qv</span><span class="p">)</span>
+                <span class="n">adata_f1</span><span class="o">=</span><span class="n">adata_f1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">nuc</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">adata_f1</span><span class="o">=</span><span class="n">keep_nuclei_and_quality</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span><span class="n">overlaps_nucleus</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">qvmin</span><span class="o">=</span><span class="n">qv</span><span class="p">)</span>
+                <span class="n">adata_f1</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;spots&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">target_sum</span> <span class="ow">in</span> <span class="n">ts</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">neigh</span> <span class="ow">in</span> <span class="n">neighs</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">norm</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">npc</span> <span class="ow">in</span> <span class="n">npcs</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">lgo</span> <span class="ow">in</span> <span class="n">logs</span><span class="p">:</span>
+                                    <span class="k">for</span> <span class="n">hvg</span> <span class="ow">in</span> <span class="n">hvgs</span><span class="p">:</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">neigh</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;neighs&#39;</span><span class="p">]</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">nuc</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;nuc&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">qv</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;qvs&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">npc</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;npcs&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">scale</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">hvg</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;hvgs&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">target_sum</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;ts&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">nm</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">])</span>
+                                        <span class="n">nv</span><span class="o">=</span><span class="n">nv</span><span class="o">+</span><span class="p">(</span><span class="n">lgo</span><span class="o">!=</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;lg&#39;</span><span class="p">])</span>
+                                        <span class="c1">#print(nv)</span>
+                                        <span class="k">if</span> <span class="n">nv</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                                            <span class="n">adata_f2</span><span class="o">=</span><span class="n">adata_f1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DEFAULT&#39;</span><span class="p">)</span>
+                                            <span class="n">result</span><span class="p">,</span><span class="n">ttc</span><span class="o">=</span><span class="n">main_preprocessing</span><span class="p">(</span><span class="n">adata_f2</span><span class="p">,</span><span class="n">neigh</span><span class="o">=</span><span class="n">neigh</span><span class="p">,</span><span class="n">npc</span><span class="o">=</span><span class="n">npc</span><span class="p">,</span><span class="n">target_sum</span><span class="o">=</span><span class="n">target_sum</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span><span class="n">hvg</span><span class="o">=</span><span class="n">hvg</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">norm</span><span class="o">=</span><span class="n">nm</span><span class="p">,</span><span class="n">lg</span><span class="o">=</span><span class="n">lgo</span><span class="p">)</span>
+                                            <span class="n">sumresult</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">,</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">]]</span>
+                                            <span class="n">sumresult</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DEFAULT_leid&#39;</span><span class="p">,</span><span class="s1">&#39;DEFAULT_louv&#39;</span><span class="p">]</span>
+                                            <span class="k">try</span><span class="p">:</span>
+                                                <span class="n">allres</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span><span class="n">sumresult</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                            <span class="k">except</span><span class="p">:</span>
+                                                <span class="n">allres</span><span class="o">=</span><span class="n">sumresult</span>
+                                        <span class="k">if</span> <span class="n">nv</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                                            <span class="n">adata_f2</span><span class="o">=</span><span class="n">adata_f1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                            <span class="nb">print</span><span class="p">(</span><span class="n">nucdic</span><span class="p">[</span><span class="n">nuc</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_qv&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">qv</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_neighs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_npc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">))</span>
+                                            <span class="n">result</span><span class="o">=</span><span class="n">main_preprocessing</span><span class="p">(</span><span class="n">adata_f2</span><span class="p">,</span><span class="n">neigh</span><span class="o">=</span><span class="n">neigh</span><span class="p">,</span><span class="n">npc</span><span class="o">=</span><span class="n">npc</span><span class="p">,</span><span class="n">target_sum</span><span class="o">=</span><span class="n">target_sum</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span><span class="n">hvg</span><span class="o">=</span><span class="n">hvg</span><span class="p">,</span><span class="n">total_clusters</span><span class="o">=</span><span class="n">ttc</span><span class="p">,</span><span class="n">norm</span><span class="o">=</span><span class="n">nm</span><span class="p">,</span><span class="n">lg</span><span class="o">=</span><span class="n">lgo</span><span class="p">)</span>
+                                            <span class="n">sumresult</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">,</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">]]</span>
+                                            <span class="n">sumresult</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">nucdic</span><span class="p">[</span><span class="n">nuc</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_qv&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">qv</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_norm_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_log_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lgo</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_leid&#39;</span><span class="p">,</span><span class="n">nucdic</span><span class="p">[</span><span class="n">nuc</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_qv&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">qv</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_norm_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_log_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lgo</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_louv&#39;</span><span class="p">]</span>
+                                            <span class="k">try</span><span class="p">:</span>
+                                                <span class="n">allres</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span><span class="n">sumresult</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                            <span class="k">except</span><span class="p">:</span>
+                                                <span class="n">allres</span><span class="o">=</span><span class="n">sumresult</span>
+    <span class="k">return</span> <span class="n">allres</span></div>
+
+
+
+
+<div class="viewcode-block" id="main_preprocessing">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.main_preprocessing">[docs]</a>
+<span class="k">def</span> <span class="nf">main_preprocessing</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">target_sum</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">mincounts</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">mingenes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">neigh</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">npc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">nuc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">hvg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">total_clusters</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">default_resol</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span><span class="n">logstatus</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">normstatus</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; preprocess and cluster cells in an Anndata object given some input parameters</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata(AnnData): AnnData object with the cells of the experiment before simulating the missegmentation.</span>
+
+<span class="sd">        target_sum(int or None): Target sum to use if the normalization is done based on library size. None is used for automatic calculation of library size.</span>
+
+<span class="sd">        mincounts (int): Minimum amount of counts detected in a cell to pass the quality filters.</span>
+
+<span class="sd">        mingenes (int): Minimum amount of genes expressed in a cell to pass the quality filters.</span>
+
+<span class="sd">        neigh(int): number of neighbors to used when calculating the nearest neighbors by sc.pp.neighbors().</span>
+
+<span class="sd">        npc(int): number of principal components to used when calculating the nearest neighbors by sc.pp.neighbors().</span>
+
+<span class="sd">        nuc(int): wether to use only nuclear reads (1) or all reads (0).</span>
+
+<span class="sd">        scale(boolean): whether to scale the data or not.</span>
+
+<span class="sd">        hvg(boolean): whether to select highly variable genes for further processing or not.</span>
+
+<span class="sd">        default(boolean): whether the run is the original one or not.</span>
+
+<span class="sd">        total_clusters (int): number of clusters to obtain in the process of clustering (+-2).</span>
+
+<span class="sd">        default_resol(float): clustering resolution to use as a default when clustering.</span>
+
+<span class="sd">        logstatus(boolean): Whether to log-transforms cells.</span>
+
+<span class="sd">        normstatus(boolean): Whether to normalize based cells or not.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata(AnnData): AnnData object after preprocessing and clustering.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+     
+    <span class="n">adata</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">filter_cells</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">min_counts</span><span class="o">=</span><span class="n">mincounts</span><span class="p">)</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">filter_cells</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">min_genes</span><span class="o">=</span><span class="n">mingenes</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">raw</span><span class="o">=</span><span class="n">adata</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">normstatus</span><span class="o">==</span><span class="s1">&#39;pearson&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">experimental</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">normalize_pearson_residuals</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">normstatus</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">normalize_total</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">target_sum</span><span class="o">=</span><span class="n">target_sum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logstatus</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hvg</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">highly_variable_genes</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">min_mean</span><span class="o">=</span><span class="mf">0.0125</span><span class="p">,</span> <span class="n">max_mean</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">min_disp</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+            <span class="n">adata</span> <span class="o">=</span> <span class="n">adata</span><span class="p">[:,</span> <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">highly_variable</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">scale</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+    <span class="c1">#remove nans, inf and -ind</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">==-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+<span class="c1">#    adata.X.fillna(0, inplace=True)</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">pca</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">n_neighbors</span><span class="o">=</span><span class="n">neigh</span><span class="p">,</span> <span class="n">n_pcs</span><span class="o">=</span><span class="n">npc</span><span class="p">)</span>
+<span class="c1">#    sc.tl.leiden(adata,resolution=2.2,key_added=&#39;leiden_2_2&#39;)</span>
+    <span class="n">resol</span><span class="o">=</span><span class="n">default_resol</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">resol</span><span class="p">,</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">)</span>
+    <span class="n">numclust</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)))</span>
+    <span class="n">targetnum</span><span class="o">=</span><span class="n">total_clusters</span>
+    <span class="k">if</span> <span class="n">default</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="n">targetnum</span><span class="o">=</span><span class="n">numclust</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">numclust</span><span class="o">-</span><span class="n">targetnum</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+        <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">numclust</span><span class="p">)</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">targetnum</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+       <span class="c1">#     print(&#39;iter &#39;+str(i))</span>
+            <span class="k">if</span> <span class="n">numclust</span><span class="o">&gt;</span><span class="n">targetnum</span><span class="p">:</span>
+                <span class="n">resol</span><span class="o">=</span><span class="n">resol</span><span class="o">-</span><span class="mf">0.05</span>
+            <span class="k">if</span> <span class="n">numclust</span><span class="o">&lt;</span><span class="n">targetnum</span><span class="p">:</span>  
+                <span class="n">resol</span><span class="o">=</span><span class="n">resol</span><span class="o">+</span><span class="mf">0.05</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">resol</span><span class="p">,</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">)</span>
+            <span class="n">numclust</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+            <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span><span class="mi">100</span><span class="p">:</span>
+                <span class="k">break</span>
+    <span class="n">resol</span><span class="o">=</span><span class="n">default_resol</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">louvain</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">resol</span><span class="p">,</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">)</span>
+    <span class="n">numclust</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">numclust</span><span class="o">-</span><span class="n">targetnum</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+        <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">numclust</span><span class="p">)</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">targetnum</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">numclust</span><span class="o">&gt;</span><span class="n">targetnum</span><span class="p">:</span>
+                <span class="n">resol</span><span class="o">=</span><span class="n">resol</span><span class="o">-</span><span class="mf">0.05</span>
+            <span class="k">if</span> <span class="n">numclust</span><span class="o">&lt;</span><span class="n">targetnum</span><span class="p">:</span>  
+                <span class="n">resol</span><span class="o">=</span><span class="n">resol</span><span class="o">+</span><span class="mf">0.05</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">resol</span><span class="p">,</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">)</span>
+            <span class="n">numclust</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+            <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span><span class="mi">100</span><span class="p">:</span>
+                <span class="k">break</span>
+    <span class="k">if</span> <span class="n">default</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">adata</span><span class="p">,</span><span class="n">targetnum</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">adata</span></div>
+
+
+<div class="viewcode-block" id="allcombs_simulated">
+<a class="viewcode-back" href="../../xb.html#xb.simulating.allcombs_simulated">[docs]</a>
+<span class="k">def</span> <span class="nf">allcombs_simulated</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">default_key</span><span class="o">=</span><span class="s1">&#39;class&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Simulate preprocessing workflows and extract results based on it for simulated data</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        default_key(str): name of the column in adata.obs where the reference cell types/clusters are stored.</span>
+<span class="sd">    </span>
+<span class="sd">    results:</span>
+<span class="sd">    allres(DataFrame): Clustering obtained with different preprocessing workflows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+     
+    <span class="n">default</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;nuc&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;npcs&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;neighs&#39;</span><span class="p">:</span><span class="mi">12</span><span class="p">,</span><span class="s1">&#39;qvs&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;scale&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span><span class="s1">&#39;hvgs&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span><span class="mi">1000000</span><span class="p">}</span><span class="c1"># default is never done</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">allres</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;first run&#39;</span><span class="p">)</span>
+    <span class="n">tot</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">total_combs</span><span class="o">=</span><span class="mi">3000</span><span class="c1">#3000 </span>
+    <span class="n">neighs</span><span class="o">=</span><span class="p">[</span><span class="mi">12</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span><span class="c1">#12</span>
+    <span class="n">npcs</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">40</span><span class="p">]</span>
+    <span class="n">ts</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span><span class="c1">#1000</span>
+    <span class="n">qvs</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">scales</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span><span class="kc">True</span><span class="p">]</span>
+    <span class="n">hvgs</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span><span class="kc">True</span><span class="p">]</span><span class="c1">#True</span>
+    <span class="n">log</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span><span class="kc">False</span><span class="p">]</span><span class="c1">#100,80</span>
+    <span class="n">norm</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span><span class="s1">&#39;pearson&#39;</span><span class="p">]</span><span class="c1">#,</span>
+    <span class="n">perc</span><span class="o">=</span><span class="mf">0.1</span>
+    <span class="n">df_resol</span><span class="o">=</span><span class="mf">0.4</span>
+    <span class="n">nuc</span><span class="o">=</span><span class="mi">1</span>
+    <span class="k">for</span> <span class="n">lg</span> <span class="ow">in</span> <span class="n">log</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">target_sum</span> <span class="ow">in</span> <span class="n">ts</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">neigh</span> <span class="ow">in</span> <span class="n">neighs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">npc</span> <span class="ow">in</span> <span class="n">npcs</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">hvg</span> <span class="ow">in</span> <span class="n">hvgs</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">norm</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">tot</span><span class="o">&gt;</span><span class="n">total_combs</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Broken&#39;</span><span class="p">)</span>
+                                    <span class="k">break</span>
+                                <span class="n">tot</span><span class="o">=</span><span class="n">tot</span><span class="o">+</span><span class="mi">1</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="n">tot</span><span class="p">)</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="n">nm</span><span class="o">==</span><span class="s1">&#39;pearson&#39;</span><span class="p">:</span>
+                                        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span>
+                                        <span class="k">if</span> <span class="n">lg</span><span class="o">==</span><span class="kc">True</span> <span class="ow">and</span> <span class="n">scale</span><span class="o">==</span><span class="kc">True</span> <span class="ow">and</span> <span class="n">hvg</span><span class="o">==</span><span class="kc">True</span> <span class="ow">and</span> <span class="n">target_sum</span><span class="o">==</span><span class="kc">None</span><span class="p">:</span>
+                                            <span class="n">ttc</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">default_key</span><span class="p">]))</span>
+                                            <span class="n">adata_f1</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                            <span class="n">adata_f2</span><span class="o">=</span><span class="n">adata_f1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                            <span class="n">result</span><span class="o">=</span><span class="n">main_preprocessing</span><span class="p">(</span><span class="n">adata_f2</span><span class="p">,</span><span class="n">neigh</span><span class="o">=</span><span class="n">neigh</span><span class="p">,</span><span class="n">npc</span><span class="o">=</span><span class="n">npc</span><span class="p">,</span><span class="n">target_sum</span><span class="o">=</span><span class="n">target_sum</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span><span class="n">hvg</span><span class="o">=</span><span class="n">hvg</span><span class="p">,</span><span class="n">total_clusters</span><span class="o">=</span><span class="n">ttc</span><span class="p">,</span><span class="n">default_resol</span><span class="o">=</span><span class="n">df_resol</span><span class="p">,</span><span class="n">logstatus</span><span class="o">=</span><span class="n">lg</span><span class="p">,</span><span class="n">normstatus</span><span class="o">=</span><span class="n">nm</span><span class="p">)</span>
+                                            <span class="n">sumresult</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">,</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">]]</span>
+                                            <span class="n">sumresult</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_lg&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_leid&#39;</span><span class="p">,</span><span class="s1">&#39;norm&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_lg&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_louvain&#39;</span><span class="p">]</span>
+                                            <span class="k">try</span><span class="p">:</span>
+                                                <span class="n">allres</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span><span class="n">sumresult</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                            <span class="k">except</span><span class="p">:</span>
+                                                <span class="n">allres</span><span class="o">=</span><span class="n">sumresult</span>
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="n">ttc</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">default_key</span><span class="p">]))</span>
+                                        <span class="n">adata_f1</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                        <span class="n">adata_f2</span><span class="o">=</span><span class="n">adata_f1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                        <span class="n">result</span><span class="o">=</span><span class="n">main_preprocessing</span><span class="p">(</span><span class="n">adata_f2</span><span class="p">,</span><span class="n">neigh</span><span class="o">=</span><span class="n">neigh</span><span class="p">,</span><span class="n">npc</span><span class="o">=</span><span class="n">npc</span><span class="p">,</span><span class="n">target_sum</span><span class="o">=</span><span class="n">target_sum</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span><span class="n">hvg</span><span class="o">=</span><span class="n">hvg</span><span class="p">,</span><span class="n">total_clusters</span><span class="o">=</span><span class="n">ttc</span><span class="p">,</span><span class="n">default_resol</span><span class="o">=</span><span class="n">df_resol</span><span class="p">,</span><span class="n">logstatus</span><span class="o">=</span><span class="n">lg</span><span class="p">,</span><span class="n">normstatus</span><span class="o">=</span><span class="n">nm</span><span class="p">)</span>
+                                        <span class="n">sumresult</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;leiden_1_4&#39;</span><span class="p">,</span><span class="s1">&#39;louvain_1_4&#39;</span><span class="p">]]</span>
+                                        <span class="n">sumresult</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_lg&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_leid&#39;</span><span class="p">,</span><span class="s1">&#39;norm&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_lg&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_louvain&#39;</span><span class="p">]</span>
+                                        <span class="k">try</span><span class="p">:</span>
+                                            <span class="n">allres</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span><span class="n">sumresult</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                        <span class="k">except</span><span class="p">:</span>
+                                            <span class="n">allres</span><span class="o">=</span><span class="n">sumresult</span>
+                                <span class="k">except</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;norm&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_lg&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_leid&#39;</span><span class="p">,</span><span class="s1">&#39;lg&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ng&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">neigh</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_pc&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">npc</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_ts&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">target_sum</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_hvg_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">hvg</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_scale_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scale</span><span class="p">))</span>
+
+    <span class="n">allres</span><span class="p">[</span><span class="s1">&#39;RESULTS&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">default_key</span><span class="p">]</span>                            
+    <span class="k">return</span> <span class="n">allres</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, nima rafati.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

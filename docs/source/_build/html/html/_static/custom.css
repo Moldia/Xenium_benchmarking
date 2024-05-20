@@ -1,0 +1,16 @@
+/* custom.css */
+
+/* Adjust the maximum width of the main content area */
+.wy-nav-content {
+    max-width: 120%; /* Change this value to your desired width */
+}
+
+/* Optionally, you can adjust the sidebar width as well */
+.wy-side-nav-search {
+    width: 40%; /* Change this value to your desired width */
+}
+
+/* Ensure the content is centered */
+.wy-nav-content-wrap {
+    justify-content: center;
+}

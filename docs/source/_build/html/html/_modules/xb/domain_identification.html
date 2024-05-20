@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xb.domain_identification &mdash; Xenium_Benchmarking 1.0.0. documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=562d53ba" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=58f5e731"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Xenium_Benchmarking
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../xb.html">xb package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../end-to-end_pipeline_optimized.html">END-TO-END PIPELINE</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Xenium_Benchmarking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">xb.domain_identification</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for xb.domain_identification</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">mmread</span>
+<span class="kn">import</span> <span class="nn">tifffile</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">ConvexHull</span><span class="p">,</span> <span class="n">convex_hull_plot_2d</span>
+<span class="kn">from</span> <span class="nn">anndata</span> <span class="kn">import</span> <span class="n">AnnData</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mutual_info_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">fowlkes_mallows_score</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span> 
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sparse</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="n">issparse</span>
+<span class="c1">#from Banksy_py.banksy.initialize_banksy import initialize_banksy</span>
+<span class="c1">#from Banksy_py.banksy.run_banksy import run_banksy_multiparam</span>
+<span class="kn">import</span> <span class="nn">squidpy</span> <span class="k">as</span> <span class="nn">sq</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">sklearn.metrics</span> <span class="k">as</span> <span class="nn">sk</span>
+
+<span class="c1">## modify the X coords of each sample so that they are processed independently</span>
+<div class="viewcode-block" id="adapt_banksy_for_multisample">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.adapt_banksy_for_multisample">[docs]</a>
+<span class="k">def</span> <span class="nf">adapt_banksy_for_multisample</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">samplekey</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Modify the spatial coordinates of each sample in adata so that they can be later be processed together by banksy</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        samplekey(str): name of the column in adata.obs where the sample of origin of each cell is stored.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment with modified adata.obs[&#39;spatial&#39;], ready to perform banksy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;Xres&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">]</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;Yres&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;y_centroid&#39;</span><span class="p">]</span>
+    <span class="n">gap</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="nb">int</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;x_centroid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">samplekey</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span>
+    <span class="n">counter</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">sampsel</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">samplekey</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">sampsel</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">samplekey</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">sampsel</span><span class="p">),</span><span class="s1">&#39;Xres&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">samplekey</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">sampsel</span><span class="p">),</span><span class="s1">&#39;Xres&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">gap</span>
+        <span class="n">counter</span><span class="o">=</span><span class="n">counter</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;Yres&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;Yres&#39;</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial_sample_specific&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;Xres&#39;</span><span class="p">,</span><span class="s1">&#39;Yres&#39;</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">adata</span></div>
+
+    
+<div class="viewcode-block" id="define_palette">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.define_palette">[docs]</a>
+<span class="k">def</span> <span class="nf">define_palette</span><span class="p">(</span><span class="n">n_colors</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Create a random palette of colors in hex format</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n_colors(str): number of colors to be inclued in the palette.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        colorlist(list): list of generated colors in hex format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+   
+    <span class="n">colorlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">n_colors</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">colorlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;#</span><span class="si">%06X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mh">0xFFFFFF</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">colorlist</span></div>
+
+    
+<div class="viewcode-block" id="domains_by_banksy">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.domains_by_banksy">[docs]</a>
+<span class="k">def</span> <span class="nf">domains_by_banksy</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">plot_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">banksy_params</span><span class="p">:</span><span class="nb">dict</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Modify the spatial coordinates of each sample in adata so that they can be later be processed together by banksy</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment where Banksy will be computed.</span>
+
+<span class="sd">        save(boolean): whether to save the resulting object or not.</span>
+
+<span class="sd">        plot_path(str): path where to save the plots generated, if desired.</span>
+
+<span class="sd">        banksy_params(dict): parameters required to perform banksy.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata (AnnData): Original AnnData object with the cells of the experiment with domains identified assigned to cells.</span>
+
+<span class="sd">        adata_res (AnnData): AnnData object resulting of the identification of domains. It contains all intermediate information generated by Banksy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">adata</span><span class="o">=</span><span class="n">adapt_banksy_for_multisample</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+    <span class="n">coord_keys</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Xres&#39;</span><span class="p">,</span> <span class="s1">&#39;Yres&#39;</span><span class="p">,</span><span class="s1">&#39;spatial&#39;</span><span class="p">)</span>
+    <span class="n">prev_clusters</span><span class="o">=</span><span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;leiden&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_clusters</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">annotation_key</span><span class="o">=</span><span class="n">prev_clusters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;default_clustering&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;0&#39;</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;default_clustering&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;default_clustering&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;category&#39;</span><span class="p">)</span>
+        <span class="n">annotation_key</span><span class="o">=</span><span class="s1">&#39;default_clustering&#39;</span>
+
+    <span class="n">banksy_dict</span> <span class="o">=</span> <span class="n">initialize_banksy</span><span class="p">(</span>
+        <span class="n">adata</span><span class="p">,</span>
+        <span class="n">coord_keys</span><span class="p">,</span>
+        <span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;k_geom&#39;</span><span class="p">],</span>
+        <span class="n">nbr_weight_decay</span><span class="o">=</span><span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;nbr_weight_decay&#39;</span><span class="p">],</span>
+        <span class="n">max_m</span><span class="o">=</span><span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;max_m&#39;</span><span class="p">],</span>
+        <span class="n">plt_edge_hist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">plt_nbr_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">plt_agf_angles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">plt_theta</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">results_df</span> <span class="o">=</span> <span class="n">run_banksy_multiparam</span><span class="p">(</span>
+        <span class="n">adata</span><span class="p">,</span>
+        <span class="n">banksy_dict</span><span class="p">,</span>
+        <span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;lambda_list&#39;</span><span class="p">],</span> <span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;resolutions&#39;</span><span class="p">],</span>
+        <span class="n">color_list</span> <span class="o">=</span> <span class="n">define_palette</span><span class="p">(</span><span class="n">n_colors</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">max_m</span> <span class="o">=</span> <span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;max_m&#39;</span><span class="p">],</span> <span class="n">filepath</span> <span class="o">=</span> <span class="n">plot_path</span><span class="p">,</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">coord_keys</span><span class="p">,</span> <span class="n">pca_dims</span> <span class="o">=</span> <span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;pca_dims&#39;</span><span class="p">],</span>
+        <span class="n">annotation_key</span> <span class="o">=</span> <span class="n">annotation_key</span><span class="p">,</span> <span class="n">max_labels</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cluster_algorithm</span> <span class="o">=</span> <span class="n">banksy_params</span><span class="p">[</span><span class="s1">&#39;cluster_algorithm&#39;</span><span class="p">],</span> <span class="n">match_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">savefig</span> <span class="o">=</span> <span class="n">save</span><span class="p">,</span> <span class="n">add_nonspatial</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">variance_balance</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">adata_res</span><span class="o">=</span><span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">results_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;adata&#39;</span><span class="p">]</span>
+    <span class="n">res</span><span class="o">=</span><span class="n">adata_res</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">,</span><span class="n">results_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">,</span><span class="s1">&#39;spatial_domain&#39;</span><span class="p">]</span>
+    <span class="n">adata_res</span><span class="o">=</span><span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">results_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;adata&#39;</span><span class="p">]</span>
+    <span class="n">res</span><span class="o">=</span><span class="n">adata_res</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">,</span><span class="n">results_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">,</span><span class="s1">&#39;spatial_domain&#39;</span><span class="p">]</span>
+    <span class="n">id2domain</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">],</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;spatial_domain&#39;</span><span class="p">]))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;banksy_domain&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2domain</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial_sample_specific&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">adata</span><span class="p">,</span><span class="n">adata_res</span></div>
+
+    
+    
+<div class="viewcode-block" id="format_data_neighs_colapse">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.format_data_neighs_colapse">[docs]</a>
+<span class="k">def</span> <span class="nf">format_data_neighs_colapse</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">condit</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        condit(str): column in adata.obs where the sample each cell belongs to is stored.</span>
+
+<span class="sd">        neighs(int): number of neighbors to consider when collapsing the expression of neighboring cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1 (AnnData): AnnData object with expression of cells collapsed from neighboring cells.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s2">&quot;spatial&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">Y</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+    <span class="n">adata_copy_int</span><span class="o">=</span><span class="n">adata</span>
+    <span class="n">sq</span><span class="o">.</span><span class="n">gr</span><span class="o">.</span><span class="n">spatial_neighbors</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="p">,</span><span class="n">n_neighs</span><span class="o">=</span><span class="n">neighs</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">tr</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obsp</span><span class="p">[</span><span class="s1">&#39;spatial_distances&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">tr2</span><span class="o">=</span><span class="n">tr</span><span class="o">&gt;</span><span class="mi">0</span>
+    <span class="n">exp</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="n">tr2</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">adata1</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">result</span><span class="p">,</span><span class="n">obs</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span><span class="n">var</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata1</span></div>
+
+
+<div class="viewcode-block" id="domains_by_rbd">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.domains_by_rbd">[docs]</a>
+<span class="k">def</span> <span class="nf">domains_by_rbd</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">hyperparameters_rbd</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span> <span class="c1">#read-based domains</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Define cellular domains by collapsing the expression of cells arround each cell (a.k.a pseudobining) and clustering</span>
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        hyperparameters_rbd(dict): dictionary with all the parameters required to identify domains based on reads (read based domains).</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata (AnnData): Original AnnData object with expression of cells and the domain identified incorporated in a column in adata.obs.</span>
+
+<span class="sd">        adataneigh (AnnData): AnnData object where domains have been identified. Cells here include the expression of neighboring cells collapsed into them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sample_key</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span>  <span class="c1"># sample is considered the &quot;sample_key&quot;</span>
+    <span class="n">anndata_list</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sample_key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">adata_copy_int</span> <span class="o">=</span> <span class="n">adata</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sample_key</span><span class="p">]</span><span class="o">==</span><span class="n">sample</span><span class="p">]</span>
+        <span class="n">adataneigh2</span><span class="o">=</span><span class="n">format_data_neighs_colapse</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sample_key</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;neighbors&#39;</span><span class="p">])</span>
+        <span class="n">anndata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adataneigh2</span><span class="p">)</span>
+    <span class="n">adataneigh</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">anndata_list</span><span class="p">)</span> 
+    <span class="n">adataneigh</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">adataneigh</span><span class="o">=</span><span class="n">adataneigh</span><span class="p">[</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;total_counts&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">adataneigh</span><span class="o">.</span><span class="n">raw</span><span class="o">=</span><span class="n">adataneigh</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span> <span class="n">n_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">n_pcs</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">umap</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;leiden&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;louvain&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">louvain</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">)</span>    
+    <span class="k">if</span> <span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;leiden&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;louvain&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">louvain</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_rbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">)</span>    
+    <span class="n">id2domain</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">],</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">]))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2domain</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span><span class="p">,</span><span class="n">adataneigh</span></div>
+
+
+
+<div class="viewcode-block" id="format_data_neighs">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.format_data_neighs">[docs]</a>
+<span class="k">def</span> <span class="nf">format_data_neighs</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by counting the neighnoring cell types of each cell</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        sname(str): column in adata.obs where the cluster assigned to each cells are stored.</span>
+
+<span class="sd">        neighs(int): number of neighbors to consider when computing neighboring cells.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata1 (AnnData): AnnData object with neighboring cell types included in a cell-by-celltype matrix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s2">&quot;spatial&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">Y</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+    <span class="n">adata_copy_int</span><span class="o">=</span><span class="n">adata</span>
+    <span class="n">sq</span><span class="o">.</span><span class="n">gr</span><span class="o">.</span><span class="n">spatial_neighbors</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="p">,</span><span class="n">n_neighs</span><span class="o">=</span><span class="n">neighs</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())])</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">tr</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obsp</span><span class="p">[</span><span class="s1">&#39;spatial_distances&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">tr2</span><span class="o">=</span><span class="n">tr</span><span class="o">&gt;</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()):</span>
+        <span class="n">epv</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">==</span><span class="n">g</span><span class="o">*</span><span class="mi">1</span>
+        <span class="n">opv</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">epv</span><span class="o">*</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[:,</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">tr2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">opv</span><span class="p">)</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">expmat</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">adata_copy_int</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="n">adata1</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">expmat</span><span class="p">,</span><span class="n">obs</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata1</span></div>
+
+    
+<div class="viewcode-block" id="compare_domains">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.compare_domains">[docs]</a>
+<span class="k">def</span> <span class="nf">compare_domains</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">domain_keys</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">plot_path</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">):</span>
+<span class="w">   </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compare domains assigned by different methods using ARI. Generate heatmap comparing them</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        domain_keys(list): list of the column names in adata.obs where domains are stored.</span>
+
+<span class="sd">        save(boolean): whether to save plots on not.</span>
+
+<span class="sd">        plot_path(str): path to the folder where to save the resulting plots.</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        ARI (DataFrame): DataFrame consisting of ARI computed between domain idenification methods. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">ARI</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">domain_keys</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">domain_keys</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">ARI</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ARI</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">ARI</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">sk</span><span class="o">.</span><span class="n">adjusted_rand_score</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+    <span class="n">ARI</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_domain&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ARI</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">ARI</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_domain&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ARI</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">clustermap</span><span class="p">(</span><span class="n">ARI</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Greens&#39;</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ARI</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">*</span><span class="mf">1.5</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ARI</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">*</span><span class="mf">1.5</span><span class="p">),</span><span class="n">dendrogram_ratio</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">save</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">plot_path</span><span class="o">+</span><span class="s1">&#39;clustermap_ARI_domains.pdf&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">fig</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">domain_keys</span><span class="p">))</span>
+            <span class="n">adatasub</span><span class="o">=</span><span class="n">adata</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">s</span><span class="p">]</span>
+            <span class="n">s</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">groupby</span> <span class="ow">in</span> <span class="n">domain_keys</span><span class="p">:</span>
+                <span class="n">sc</span><span class="o">.</span><span class="n">pl</span><span class="o">.</span><span class="n">spatial</span><span class="p">(</span><span class="n">adatasub</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">groupby</span><span class="p">,</span><span class="n">spot_size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">s</span><span class="p">],</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">save</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">plot_path</span><span class="o">+</span><span class="s1">&#39;map_all_domains_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.pdf&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">ARI</span></div>
+
+
+<div class="viewcode-block" id="domains_by_nbd">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.domains_by_nbd">[docs]</a>
+<span class="k">def</span> <span class="nf">domains_by_nbd</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">hyperparameters_nbd</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Define cellular domains by collapsing using the cellular identity of neighboring cell types and clustering</span>
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        hyperparameters_nbd(dict): dictionary with all the parameters required to identify domains based on neighbors (neighbors based domains).</span>
+
+<span class="sd">    results:</span>
+<span class="sd">        adata (AnnData): Original AnnData object with expression of cells and the domain identified incorporated in a column in adata.obs.</span>
+
+<span class="sd">        adataneigh (AnnData): AnnData object where domains have been identified. Cells here include the identity of neighboring cells.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sample_key</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span>  <span class="c1"># sample is considered the &quot;sample_key&quot;</span>
+    <span class="n">anndata_list</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sample_key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">adata_copy_int</span> <span class="o">=</span> <span class="n">adata</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">sample_key</span><span class="p">]</span><span class="o">==</span><span class="n">sample</span><span class="p">]</span>
+        <span class="n">adataneigh2</span><span class="o">=</span><span class="n">format_data_neighs</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">],</span><span class="n">neighs</span><span class="o">=</span><span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;neighbors&#39;</span><span class="p">])</span>
+        <span class="n">anndata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adataneigh2</span><span class="p">)</span>
+    <span class="n">adataneigh</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">anndata_list</span><span class="p">)</span>
+    <span class="n">adataneigh</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">adataneigh</span><span class="o">=</span><span class="n">adataneigh</span><span class="p">[</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;total_counts&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">adataneigh</span><span class="o">.</span><span class="n">raw</span><span class="o">=</span><span class="n">adataneigh</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span> <span class="n">n_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">n_pcs</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">umap</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;leiden&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;louvain&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">louvain</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">)</span>    
+    <span class="k">if</span> <span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;leiden&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">leiden</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;louvain&#39;</span><span class="p">:</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">louvain</span><span class="p">(</span><span class="n">adataneigh</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="n">hyperparameters_nbd</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">],</span><span class="n">key_added</span><span class="o">=</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">)</span>    
+    <span class="n">id2domain</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">],</span><span class="n">adataneigh</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">]))</span>
+    <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;unique_cell_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id2domain</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adata</span><span class="p">,</span><span class="n">adataneigh</span></div>
+
+
+<div class="viewcode-block" id="spatial_plot">
+<a class="viewcode-back" href="../../xb.html#xb.domain_identification.spatial_plot">[docs]</a>
+<span class="k">def</span> <span class="nf">spatial_plot</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">plot_path</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generate spatial plot of each sample in an AnnData object, with cells color as required</span>
+<span class="sd">    Args:</span>
+<span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
+
+<span class="sd">        groupby(str): name of the column in adata.obs to use to color cells.</span>
+
+<span class="sd">        save(boolean):whether to save the resulting plots or not.</span>
+
+<span class="sd">        plot_path(str): if required, path where to save the resulting plots.</span>
+
+
+<span class="sd">    results:</span>
+<span class="sd">        None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">adatasub</span><span class="o">=</span><span class="n">adata</span><span class="p">[</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">s</span><span class="p">]</span>
+            <span class="n">sc</span><span class="o">.</span><span class="n">pl</span><span class="o">.</span><span class="n">spatial</span><span class="p">(</span><span class="n">adatasub</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">groupby</span><span class="p">,</span><span class="n">spot_size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="s1">&#39;p99&#39;</span><span class="p">,</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">plot_path</span><span class="o">+</span><span class="s1">&#39;spatial_map_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_by_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">groupby</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.pdf&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, nima rafati.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
