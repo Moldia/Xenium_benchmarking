@@ -394,8 +394,7 @@ def keep_nuclei(adata1,overlaps_nucleus=1):
     return adata1nuc
     
 def cell_area(adata_sp: AnnData,pipeline_output=True):
-    """Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2"
-
+    """Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2
     Args:
         adata_sp : AnnData, annotated ``AnnData`` object with counts from spatial data.
 
