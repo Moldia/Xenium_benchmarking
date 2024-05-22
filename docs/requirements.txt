@@ -1,3 +1,4 @@
+rasterio==1.2.10
 anndata==0.8.0
 matplotlib==3.5.2
 matplotlib-inline==0.1.3
