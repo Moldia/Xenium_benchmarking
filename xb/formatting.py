@@ -18,15 +18,13 @@ from xb.util import get_image_shape, extract_physical_sizes, convert_polygons_to
 
 
 def format_xenium_adata(path,tag,output_path):
-    """ Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)
-
+    """ Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)  
     Args:
         path(str): path to the folder where the output of the Xenium machine is stored.
 
         tag(str): sample tag to be added to be added to all cells formated from the section. 
 
         output_path(str): path where to store the resulting adata object.
-
 
     results:
         adata: AnnData object with the formated cells
@@ -122,8 +120,7 @@ def format_xenium_adata(path,tag,output_path):
     
 
 def format_xenium_adata_2023(path,tag,output_path):
-    """ Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023
-
+    """ Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023  
     Args:
         path(str): path to the folder where the output of the Xenium machine is stored.
 
@@ -232,8 +229,7 @@ def format_xenium_adata_2023(path,tag,output_path):
 
 
 def format_xenium_adata_mid_2023(path,tag,output_path):
-    """ Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023
-
+    """ Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023  
     Args:
         path(str): path to the folder where the output of the Xenium machine is stored.
 
@@ -372,8 +368,7 @@ def format_background(path):
     
     
 def keep_nuclei(adata1,overlaps_nucleus=1):
-    """ Redefine cells in AnnData to keep only nuclear reads 
-
+    """ Redefine cells in AnnData to keep only nuclear reads   
     Args:
         adata1(AnnData): AnnData object with the cells of the experiment.
 
@@ -394,7 +389,7 @@ def keep_nuclei(adata1,overlaps_nucleus=1):
     return adata1nuc
     
 def cell_area(adata_sp: AnnData,pipeline_output=True):
-    """Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2
+    """Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2  
     Args:
         adata_sp : AnnData, annotated ``AnnData`` object with counts from spatial data.
 
@@ -412,8 +407,7 @@ def cell_area(adata_sp: AnnData,pipeline_output=True):
 
 
 def generate_random_color_variation(base_color, deviation=0.17):
-    """ Generate variations of a reference color
-        
+    """ Generate variations of a reference color  
     Args:
         base_color (str):reference hex color.
 
@@ -441,8 +435,7 @@ def generate_random_color_variation(base_color, deviation=0.17):
 
 
 def format_data_neighs(adata,sname,condit,neighs=10):
-    """ Redefine the expression of cells in adata by counting the neighnoring cell types of each cell
-
+    """ Redefine the expression of cells in adata by counting the neighnoring cell types of each cell  
     Args:
         adata (AnnData): AnnData object with the cells of the experiment.
 
@@ -477,8 +470,7 @@ def format_data_neighs(adata,sname,condit,neighs=10):
     return adata1
 
 def format_data_neighs_colapse(adata,sname,condit,neighs=10):
-    """ Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)
-        
+    """ Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)    
     Args:
         adata (AnnData): AnnData object with the cells of the experiment.
 
@@ -510,8 +502,7 @@ def format_data_neighs_colapse(adata,sname,condit,neighs=10):
 
 
 def format_xenium_adata_final(path,tag,output_path,use_parquet=True,save=True):
-    """ Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format.
-
+    """ Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format   
     Args:
         path(str): path to the folder where the output of the Xenium machine is stored, if requested.
 
@@ -618,8 +609,7 @@ def format_xenium_adata_final(path,tag,output_path,use_parquet=True,save=True):
     return adata
 
 def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20,save=True,output_path=''):
-    """ Redefine cell expression based on nuclei expression an quality of detected reads
-
+    """ Redefine cell expression based on nuclei expression an quality of detected reads  
     Args:
         adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.
 
@@ -656,8 +646,7 @@ def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20
     return adata1nuc
 
 def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_nucleus_distance=0,min_quality=10):
-    """ Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters
-
+    """ Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters  
     Args:
         files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).
 
@@ -698,12 +687,8 @@ def format_to_adata(files:list,output_path:str,use_parquet=True,save=False,max_n
     return adata
 
 
-
-
-
 def prep_xenium_data_for_baysor(XENIUM_DIR:str, OUT_DIR:str,CROP=True, COORDS=[15000, 16000, 15000, 16000]):
-    """ Format xenium datasets for its use for baysor segmentation
-
+    """ Format xenium datasets for its use for baysor segmentation  
     Args:
         XENIUM_DIR(list): path where  the Xenium output is saved for each sample (output from the machine).
 
@@ -803,12 +788,24 @@ def prep_xenium_data_for_baysor(XENIUM_DIR:str, OUT_DIR:str,CROP=True, COORDS=[1
     print("CHECKPOINT 10: Label image saved")
 
 def batch_prep_xenium_data_for_baysor(files,outpath,CROP=True, COORDS=[1000, 5000, 1000, 5000]):
+    """ Running the function prep_xenium_data_for_baysor for multiple samples   
+    Args:
+        files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).
+
+        outpath(str): path where to store the resulting adata object.
+
+        CROP(boolean): whether to use a small Region of interest for segmentation.
+
+        COORDS(list): if CROP is used, coordinates of the crop in the form of [YMIN,YMAX,XMIN,XMAX].
+    results:
+        None.
+    """
+
     for f in files:
         prep_xenium_data_for_baysor(f, output_path,CROP=False)
         
 def format_baysor_output_to_adata(path:str,output_path:str):
-    """Format baysor's output to anndata
-
+    """Format baysor's output to anndata  
     Args:
         path (AnnData): path to the folder where baysor's output is stored
         output_path(str): path where to store the generated adata
