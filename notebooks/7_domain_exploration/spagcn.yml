@@ -1,0 +1,4 @@
+name: spagcn
+channels:
+  - defaults
+prefix: /home/sergio/anaconda3/envs/spagcn

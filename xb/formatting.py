@@ -15,6 +15,7 @@ import scipy as sp
 from pathlib import Path
 import tifffile
 from xb.util import get_image_shape, extract_physical_sizes, convert_polygons_to_label_image_xenium
+import squidpy as sq
 
 
 def format_xenium_adata(path,tag,output_path):

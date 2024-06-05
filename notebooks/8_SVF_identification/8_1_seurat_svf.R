@@ -1,9 +1,7 @@
+
+
 library("Seurat")
-
-
 tag='human_brain'
-#  
-
 
 files=list.files('/media/sergio/xenium_b_and_heart/Xenium_benchmarking-main/data/formatted_for_R/unprocessed_adata_nuclei/')
 

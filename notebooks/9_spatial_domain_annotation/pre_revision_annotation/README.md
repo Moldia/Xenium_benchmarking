@@ -4,7 +4,7 @@
 ***
 
 This folder contains files and scripts used to perform spatial annotation of
-different spatially-resolved datasets, including:
+different spatially-resolved datasets, including: (biorxiv version of the manuscript)
 - Xenium replicate 1
 - Xenium replicate 2
 - Xenium replicate 3

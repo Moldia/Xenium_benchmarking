@@ -1,3 +1,4 @@
+##### AIM OF THE NOTEBOOK: Compute SVFs using Giotto
 
 library(Giotto)
 library(smfishHmrf)
@@ -335,44 +336,6 @@ giotto_colors = Giotto:::getDistinctColors(25)
 names(giotto_colors) = 1:25
 spatPlot(gobject = osm_test,
          point_size = 3, coord_fix_ratio = 1, cell_color_code = giotto_colors)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ##########################
