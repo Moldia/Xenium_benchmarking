@@ -614,7 +614,7 @@ def keep_nuclei_and_quality(adata1,tag:str,max_nucleus_distance=1,min_quality=20
     adata1nuc(AnnData): AnnData object with the cells redefined based to input parameters
     """
     if max_nucleus_distance==0:
-        subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==overlaps_nucleus,:]
+        subset1=adata1.uns['spots'].loc[adata1.uns['spots']['overlaps_nucleus']==1,:]
     if max_nucleus_distance>0:
         subset1=adata1.uns['spots'].loc[adata1.uns['spots']['nucleus_distance']<max_nucleus_distance,:]
     subset1=subset1[subset1['qv']>min_quality]
