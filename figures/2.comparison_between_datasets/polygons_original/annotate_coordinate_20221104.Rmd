@@ -1,0 +1,165 @@
+---
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r}
+library(xml2)
+# remotes::install_github("coolbutuseless/svgparser")
+library(svgparser)
+library(rhdf5)
+library(RColorBrewer)
+# pal <- scales::hue_pal()(100)[sample(1:100,size = 100,replace = F)]
+pal <- c(brewer.pal(9,"Set1"),brewer.pal(8,"Set2"),brewer.pal(9,"Set3"),brewer.pal(9,"Pastel1"))
+```
+
+
+```{r}
+annotate_svg <- function(df, svg_path, j, out_path, plot=FALSE, adj){
+  message(j)
+
+  if(grepl("ST_",j)){
+    img <- png::readPNG( gsub(".h5ad",".png",file_use) )
+    lims <- c(0,dim(img)[2],0,dim(img)[1])
+  } else {
+    lims <- c(range(df[,1]), range(df[,2]))
+  }
+
+  # df[,1] <- (df[,1] - lims[1]) / ( lims[2] - lims[1] )
+  # df[,2] <- (df[,2] - lims[3]) / ( lims[4] - lims[3] )
+
+  a <- svgparser::read_svg(svg_path,npoints = 30,obj_type = "list")
+  a2 <- as_list( read_xml( svg_path ) )
+  names <- unlist(sapply(a2$svg,function(x){ifelse( is.null(attr(x,"id")),"",attr(x,"id") )}))
+  # names <- lapply( a , function(x){ strsplit(x$svg,split = " ")[[1]] })
+  # names <- (lapply( names , function(x){ x[grep("^id=",x)] }))
+  # names <- unlist(lapply( names , function(x){ if(length(x)==0){return("")}else{return(x)} }))
+  # names <- gsub('^id=|[\"]',"",names)
+
+  sel <- setNames( !(names %in% c("image","fov")) , names )
+  lim_svg <- c(range(a[[grep("image",names)]]$svg_df[,1]), range(a[[grep("image",names)]]$svg_df[,2]))
+
+  out <- data.frame( df[,1:2], ID="", SA="", row.names = rownames(df) )
+  tmp <- list()
+
+  print(lims)
+  print(lim_svg)
+
+  for(i in (1:length(a))[sel] ){
+    ID <- ifelse( is.null(attr(a2$svg[[i]],"id")),"",attr(a2$svg[[i]],"id") )
+
+    tmp[[i]] <- a[[i]]$svg_df[,1:2]
+
+    tmp[[i]][,1] <- (tmp[[i]][,1] - lim_svg[1]) / ( lim_svg[2] - lim_svg[1] )
+    tmp[[i]][,2] <- (tmp[[i]][,2] - lim_svg[3]) / ( lim_svg[4] - lim_svg[3] )
+
+    tmp[[i]][,1] <- ( tmp[[i]][,1] ) * adj[j,1] - adj[j,3]
+    tmp[[i]][,2] <- ( tmp[[i]][,2] ) * adj[j,2] - adj[j,4]
+
+    tmp[[i]][,1] <- tmp[[i]][,1] * ( lims[2] - lims[1] ) + lims[1]
+    tmp[[i]][,2] <- tmp[[i]][,2] * ( lims[4] - lims[3] ) + lims[3]
+
+    tmp[[i]] <- cbind(tmp[[i]],ID)
+
+    res <- polyclip::pointinpolygon(
+      P = df,
+      A = tmp[[i]][,1:2] )
+    cat(attr(a2$svg[[i]],"id")," ")
+    out[res==1, "SA"] <- ID
+    out[res==1, "ID"] <- paste0(i,"_",ID)
+  }
+  cat("\n\n")
+
+  tmp2 <- do.call(rbind,tmp)
+
+  write.csv( cbind(SA=tmp2[,c("ID")],round(tmp2[,c("x","y")],3) ) ,
+             paste0("SpatialPolygon_",j,".csv"), row.names = T)
+  write.csv( out , paste0("SpatiaLabels_",j,".csv"), row.names = T)
+
+  if(plot){
+    png(paste0("SpatialPlotLabels_",j,".png"),width = 600, height = 800, res=100)
+    plot(df,cex=.5,pch=16,
+         xlim=range(c(df[,1],tmp2[,1])),ylim=range(c(df[,2],tmp2[,2])),
+         col=pal[as.numeric(as.factor(out[,"SA"]))] )
+    for(i in (1:length(a))[sel]){
+      polygon(tmp[[i]][,1:2])
+    }
+    dev.off()
+  }
+
+}
+```
+
+
+# STARMAP
+
+```{r}
+adjust <- read.csv2("annotation_adjustment.csv",row.names = 1)
+dict <- c(Xenium_rep1="",Xenium_rep2="",Xenium_rep3="",starmap="NAME",osmfish="CellID",exseq="_index",baristaseq="_index",smfish="cellID",ST_FFPE="_index",ST_FISH="_index",ST_FF="_index")
+
+# dict <- dict[grep("ST_",names(dict))]
+j = names(dict)[1]
+
+for(j in names(dict)){
+  file_use <- paste0("christophe/",j,".h5ad")
+  a2 <- as_list( read_xml( paste0(j,".svg") ) )
+
+  if( grepl("Xenium_",j) ){
+    df <- read.csv(paste0("",j,".csv") )
+    df <- data.frame(x=df[,"X"],y=-df[,"Y"],row.names = df$cell_id)
+  } else {
+    # rhdf5::h5ls(file_use)
+    df <- t(rhdf5::h5read(file_use,"/obsm/X_spatial"))
+    si <- rhdf5::h5read(file_use,paste0("/obs/sample_id/codes") )
+    rn <- rhdf5::h5read(file_use,paste0("/obs/",dict[j]) )
+    df <- data.frame(x=df[,1],y=df[,2],row.names = rn)
+  }
+
+  if(j == "starmap"){
+    df <- df[si==1,]
+  }
+
+  if(grepl("ST_",j)){
+    df <- read.csv(paste0("ST/",j,"/spatial/tissue_positions_list.csv"),
+                   header = F,row.names = 1)
+    df <- data.frame(x=df[,5],y=df[,4],row.names = rownames(df))[df[,1]==1,]
+
+    sf <- jsonlite::fromJSON(paste0("ST/",j,"/spatial/scalefactors_json.json"))
+    df <- df * sf$tissue_hires_scalef
+    # img <- png::readPNG( paste0("ST/",j,"/spatial/tissue_hires_image.png") )
+    # lims <- c(0,dim(img)[2],0,dim(img)[1])
+    # range(df[,1])
+    # range(df[,2])
+    # df <- data.frame(x=df[,2],y=df[,1])
+  }
+
+  annotate_svg(
+    df = df,
+    svg_path=paste0(j,".svg"),
+    j = j,
+    adj=adjust,
+    out_path = paste0("Spatial_annotation_",j,".csv"),
+    plot = T)
+}
+```
+
+
+## Annotate transcripts
+
+```{r}
+adjust <- read.csv2("annotation_adjustment.csv",row.names = 1)
+
+for(j in 1:3){
+  df <- data.table::fread(paste0("transcripts",j,".csv"),select = c(5,6))
+  colnames(df) <- c("x","y")
+  annotate_svg(
+    df = df,
+    svg_path=paste0(j,".svg"),
+    j = j,
+    adj=adjust,
+    out_path = paste0("Spatial_annotation_transcript_",j,".csv"),
+    plot = F)
+}
+```

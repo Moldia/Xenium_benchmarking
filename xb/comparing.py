@@ -13,6 +13,7 @@ from anndata import AnnData
 import json
 from sklearn.metrics import mutual_info_score
 from sklearn.metrics import fowlkes_mallows_score
+from tqdm import tqdm
 
 def combine_med(medians,tag):
     """ Combine precomputed medians into a single dataframe

@@ -15,8 +15,8 @@ import squidpy as sq
 
 
 def nhood_squidpy(adata,sample_key='sample',radius=50,cluster_key='leiden',save=True,plot_path='./',cmap='inferno',vmax=None,vmin=None):
-   """ Compute neighborhood enrichment based on Squidpy's function
-   
+    """ Compute neighborhood enrichment based on Squidpy's function
+
     Parameters:
     adata (AnnData): AnnData object with the cells of the experiment. 
     sample_key (str): name of the column where the sample each cell belongs to is specify. It should be a column present in adata.obs
@@ -30,7 +30,7 @@ def nhood_squidpy(adata,sample_key='sample',radius=50,cluster_key='leiden',save=
     Returns:
     adata1: AnnData object with the neighborhood enrichment scores computed
 
-   """
+    """
     
     anndata_list=[]
     plt.style.use('default')

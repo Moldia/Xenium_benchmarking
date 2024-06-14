@@ -16,6 +16,8 @@ from sklearn.metrics import fowlkes_mallows_score
 import math
 from sklearn.metrics import normalized_mutual_info_score
 from shapely.geometry import Point, Polygon
+from tqdm import tqdm
+import alphashape
 
 def dist_nuc(reads_ctdsub):
     """ Compute the median distance to the nuclei the edges of each cell, for all cells profiled
@@ -336,7 +338,7 @@ def alphashape_fun(points,alpha=0.1):
     print("Area of the Alpha Shape (Concave Hull):", area)
     return area
 
-def svf_moranI(adata1,sample_key='sample',radius=50.0):
+def svf_moranI(adata,sample_key='sample',radius=50.0):
     """ Compute spatially variable features using Moran's I (squidpy implementation)
 
     Parameters:
