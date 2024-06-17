@@ -96,7 +96,7 @@
 <div class="viewcode-block" id="format_xenium_adata">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata">[docs]</a>
 <span class="k">def</span> <span class="nf">format_xenium_adata</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, using the original Xenium format (pre-release)  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
@@ -104,7 +104,6 @@
 <span class="sd">        tag(str): sample tag to be added to be added to all cells formated from the section. </span>
 
 <span class="sd">        output_path(str): path where to store the resulting adata object.</span>
-
 
 <span class="sd">    results:</span>
 <span class="sd">        adata: AnnData object with the formated cells</span>
@@ -203,7 +202,7 @@
 <div class="viewcode-block" id="format_xenium_adata_2023">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata_2023">[docs]</a>
 <span class="k">def</span> <span class="nf">format_xenium_adata_2023</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, considerin the format used by Xenium in Q1 2023  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
@@ -316,7 +315,7 @@
 <div class="viewcode-block" id="format_xenium_adata_mid_2023">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata_mid_2023">[docs]</a>
 <span class="k">def</span> <span class="nf">format_xenium_adata_mid_2023</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format, considerin the format used by Xenium at Q2 2023  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored.</span>
@@ -462,7 +461,7 @@
 <div class="viewcode-block" id="keep_nuclei">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.keep_nuclei">[docs]</a>
 <span class="k">def</span> <span class="nf">keep_nuclei</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span><span class="n">overlaps_nucleus</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cells in AnnData to keep only nuclear reads </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cells in AnnData to keep only nuclear reads   </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        adata1(AnnData): AnnData object with the cells of the experiment.</span>
@@ -487,7 +486,7 @@
 <div class="viewcode-block" id="cell_area">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.cell_area">[docs]</a>
 <span class="k">def</span> <span class="nf">cell_area</span><span class="p">(</span><span class="n">adata_sp</span><span class="p">:</span> <span class="n">AnnData</span><span class="p">,</span><span class="n">pipeline_output</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        adata_sp : AnnData, annotated ``AnnData`` object with counts from spatial data.</span>
@@ -509,8 +508,8 @@
 <div class="viewcode-block" id="generate_random_color_variation">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.generate_random_color_variation">[docs]</a>
 <span class="k">def</span> <span class="nf">generate_random_color_variation</span><span class="p">(</span><span class="n">base_color</span><span class="p">,</span> <span class="n">deviation</span><span class="o">=</span><span class="mf">0.17</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generate variations of a reference color</span>
-<span class="sd">        </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generate variations of a reference color   </span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        base_color (str):reference hex color.</span>
 
@@ -541,7 +540,7 @@
 <div class="viewcode-block" id="format_data_neighs">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_data_neighs">[docs]</a>
 <span class="k">def</span> <span class="nf">format_data_neighs</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">condit</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by counting the neighnoring cell types of each cell</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by counting the neighnoring cell types of each cell  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
@@ -580,8 +579,8 @@
 <div class="viewcode-block" id="format_data_neighs_colapse">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_data_neighs_colapse">[docs]</a>
 <span class="k">def</span> <span class="nf">format_data_neighs_colapse</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">condit</span><span class="p">,</span><span class="n">neighs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)</span>
-<span class="sd">        </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine the expression of cells in adata by collapsing the expression of its neighbors into each cell (a.k.a pseudobining)    </span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        adata (AnnData): AnnData object with the cells of the experiment.</span>
 
@@ -616,7 +615,7 @@
 <div class="viewcode-block" id="format_xenium_adata_final">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_xenium_adata_final">[docs]</a>
 <span class="k">def</span> <span class="nf">format_xenium_adata_final</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">output_path</span><span class="p">,</span><span class="n">use_parquet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format   </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        path(str): path to the folder where the output of the Xenium machine is stored, if requested.</span>
@@ -727,7 +726,7 @@
 <div class="viewcode-block" id="keep_nuclei_and_quality">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.keep_nuclei_and_quality">[docs]</a>
 <span class="k">def</span> <span class="nf">keep_nuclei_and_quality</span><span class="p">(</span><span class="n">adata1</span><span class="p">,</span><span class="n">tag</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">min_quality</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">output_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cell expression based on nuclei expression an quality of detected reads</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Redefine cell expression based on nuclei expression an quality of detected reads  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        adata1 (AnnData): AnnData object with the cells of the experiment before filtereing reads based on quality or nuclear/non-nuclear.</span>
@@ -768,7 +767,7 @@
 <div class="viewcode-block" id="format_to_adata">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_to_adata">[docs]</a>
 <span class="k">def</span> <span class="nf">format_to_adata</span><span class="p">(</span><span class="n">files</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span><span class="n">output_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">use_parquet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">min_quality</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium datasets (outputs from the machine, up to date 2024) to adata files and filter reads based on quality parameters  </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).</span>
@@ -811,13 +810,10 @@
 
 
 
-
-
-
 <div class="viewcode-block" id="prep_xenium_data_for_baysor">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.prep_xenium_data_for_baysor">[docs]</a>
 <span class="k">def</span> <span class="nf">prep_xenium_data_for_baysor</span><span class="p">(</span><span class="n">XENIUM_DIR</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">OUT_DIR</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">CROP</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">COORDS</span><span class="o">=</span><span class="p">[</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">16000</span><span class="p">,</span> <span class="mi">15000</span><span class="p">,</span> <span class="mi">16000</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium datasets for its use for baysor segmentation</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Format xenium datasets for its use for baysor segmentation   </span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        XENIUM_DIR(list): path where  the Xenium output is saved for each sample (output from the machine).</span>
@@ -921,6 +917,20 @@
 <div class="viewcode-block" id="batch_prep_xenium_data_for_baysor">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.batch_prep_xenium_data_for_baysor">[docs]</a>
 <span class="k">def</span> <span class="nf">batch_prep_xenium_data_for_baysor</span><span class="p">(</span><span class="n">files</span><span class="p">,</span><span class="n">outpath</span><span class="p">,</span><span class="n">CROP</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">COORDS</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Running the function prep_xenium_data_for_baysor for multiple samples   </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).</span>
+
+<span class="sd">        outpath(str): path where to store the resulting adata object.</span>
+
+<span class="sd">        CROP(boolean): whether to use a small Region of interest for segmentation.</span>
+
+<span class="sd">        COORDS(list): if CROP is used, coordinates of the crop in the form of [YMIN,YMAX,XMIN,XMAX].</span>
+<span class="sd">    results:</span>
+<span class="sd">        None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
         <span class="n">prep_xenium_data_for_baysor</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span><span class="n">CROP</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
@@ -928,8 +938,8 @@
 <div class="viewcode-block" id="format_baysor_output_to_adata">
 <a class="viewcode-back" href="../../xb.html#xb.formatting.format_baysor_output_to_adata">[docs]</a>
 <span class="k">def</span> <span class="nf">format_baysor_output_to_adata</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">output_path</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format baysor&#39;s output to anndata</span>
-
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format baysor&#39;s output to anndata  </span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
 <span class="sd">        path (AnnData): path to the folder where baysor&#39;s output is stored</span>
 <span class="sd">        output_path(str): path where to store the generated adata</span>

@@ -613,12 +613,22 @@ Args:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="xb.formatting.batch_prep_xenium_data_for_baysor">
 <span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">batch_prep_xenium_data_for_baysor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CROP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">COORDS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1000,</span> <span class="pre">5000,</span> <span class="pre">1000,</span> <span class="pre">5000]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xb/formatting.html#batch_prep_xenium_data_for_baysor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.batch_prep_xenium_data_for_baysor" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Running the function prep_xenium_data_for_baysor for multiple samples</p>
+<dl>
+<dt>Args:</dt><dd><p>files(list): list including the paths where  the Xenium outputs are saved for each sample (output from the machine).</p>
+<p>outpath(str): path where to store the resulting adata object.</p>
+<p>CROP(boolean): whether to use a small Region of interest for segmentation.</p>
+<p>COORDS(list): if CROP is used, coordinates of the crop in the form of [YMIN,YMAX,XMIN,XMAX].</p>
+</dd>
+<dt>results:</dt><dd><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="xb.formatting.cell_area">
 <span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">cell_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata_sp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xb/formatting.html#cell_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.cell_area" title="Link to this definition"></a></dt>
-<dd><p>Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2”</p>
+<dd><p>Calculates the area of the region imaged using convex hull and divide total number of cells/area. XY position should be in um2</p>
 <dl>
 <dt>Args:</dt><dd><p>adata_sp : AnnData, annotated <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> object with counts from spatial data.</p>
 <p>pipeline_output : float, optional, boolean for whether to create the pipeline output.</p>
@@ -731,7 +741,7 @@ output_path(str): path where to store the generated adata</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="xb.formatting.format_xenium_adata_final">
 <span class="sig-prename descclassname"><span class="pre">xb.formatting.</span></span><span class="sig-name descname"><span class="pre">format_xenium_adata_final</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_parquet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xb/formatting.html#format_xenium_adata_final"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xb.formatting.format_xenium_adata_final" title="Link to this definition"></a></dt>
-<dd><p>Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format.</p>
+<dd><p>Format xenium data (output from the machine) to adata format using the official up-to-date Xenium format</p>
 <dl>
 <dt>Args:</dt><dd><p>path(str): path to the folder where the output of the Xenium machine is stored, if requested.</p>
 <p>tag(str): sample tag to be added to be added to all cells formated from the section.</p>

@@ -8,7 +8,7 @@
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=f62d2fdb" />
-      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
   <!--[if lt IE 9]>
@@ -57,23 +57,23 @@
 <li class="toctree-l2"><a class="reference internal" href="#0.-Defining-input-parameters">0. Defining input parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#1.-Format-Xenium-output-to-AnnData">1. Format Xenium output to AnnData</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#2.-Resegmentation-using-Baysor-(Alternative-to-#1)">2. Resegmentation using Baysor (Alternative to #1)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#3.-Preprocess-and-cluster-cells-AnnData">3. Preprocess and cluster cells AnnData</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Preprocess-adata-using-predefined-parameters">Preprocess adata using predefined parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#3.-Preprocess-and-cluster-cells-AnnData">3. Preprocess and cluster cells AnnData</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Preprocess-adata-using-predefined-parameters">Preprocess adata using predefined parameters</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#4.-Domain-identification-(use-any-of-the-following-algorithms-in-4.1-3)">4. Domain identification (use any of the following algorithms in 4.1-3)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#4.1-Banksy's-domain-identification">4.1 Banksy’s domain identification</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#Import-required-packages">Import required packages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Run-Banksy">Run Banksy</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#Run-Banksy">Run Banksy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#4.2-Neighbors-based-domain-identification-(NBD)">4.2 Neighbors-based domain identification (NBD)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#4.3-Read-based-domains-identification-(RBD)">4.3 Read-based domains identification (RBD)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#4.4-Compare-domains-identified-by-different-algorithms">4.4 Compare domains identified by different algorithms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#5.1-Imputation-using-SpaGE">5.1 Imputation using SpaGE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#6.Identifying-Spatially-variabile-genes-(SVF)-by-Squidpy's-Moran-I">6.Identifying Spatially variabile genes (SVF) by Squidpy’s Moran I</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#5-Imputation-using-SpaGE">5 Imputation using SpaGE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#6.Identifying-Spatially-variabile-genes-(SVF)-by-Squidpy's-Moran-I">6.Identifying Spatially variabile genes (SVF) by Squidpy’s Moran I</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#7.-Defining-neighborhood-enrichment-of-celltypes-using-Squidpy">7. Defining neighborhood enrichment of celltypes using Squidpy</a></li>
 </ul>
 </li>
@@ -113,7 +113,7 @@ Banksy(preferred) ,neighbor-based domains or read-based domains 6. <strong>Ident
 <section id="Import-packages">
 <h2>Import packages<a class="headerlink" href="#Import-packages" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[58]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -126,7 +126,7 @@ Banksy(preferred) ,neighbor-based domains or read-based domains 6. <strong>Ident
 <span class="kn">from</span> <span class="nn">xb.plotting</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">xb.preprocessing</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">xb.Spage_main</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">xb.calculating</span> <span class="kn">import</span> <span class="n">domainassign</span>
+<span class="kn">from</span> <span class="nn">xb.calculating</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 </div>
@@ -134,12 +134,14 @@ Banksy(preferred) ,neighbor-based domains or read-based domains 6. <strong>Ident
 <section id="0.-Defining-input-parameters">
 <h2>0. Defining input parameters<a class="headerlink" href="#0.-Defining-input-parameters" title="Link to this heading"></a></h2>
 <p>We first define some basic information for our path including: - <strong>Files</strong>: list including the paths where your Xenium output is stored for each experiment - <strong>Output_path</strong>: directory where you want to save the ouptut of your pipeline - <strong>save</strong>: whether you want to save intermediate files and plots - <strong>plot_path</strong>: path to the directory where figures generated should be saved, if applicable</p>
+<p><strong>OBS! Downloading example dataset:</strong> For downloading Xenium example dataset, please use the following link: <a class="reference external" href="https://doi.org/10.5281/zenodo.11612060">https://doi.org/10.5281/zenodo.11612060</a> and include the path of the downloaded files under <code class="docutils literal notranslate"><span class="pre">files</span></code></p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">files</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;/media/sergio/Discovair_final/PD_AnaMunoz_INT/Xenium_PD_ana/20231116__104946__20231116_AnaMunoz_run5/output-XETG00045__0011129__1225C__20231116__105020&#39;</span><span class="p">]</span>
-<span class="n">output_path</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;../../pipeline_output/&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">files</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;./data/data_end_to_end_pipeline/output-XETG00047__0011146__1886C__20231102__180733&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;./data/data_end_to_end_pipeline/output-XETG00047__0011146__1886P__20231102__180733&#39;</span><span class="p">]</span>
+<span class="n">output_path</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;../pipeline_output/&#39;</span>
 <span class="n">save</span><span class="o">=</span><span class="kc">True</span> <span class="c1">## Saving intermediate outputs</span>
 <span class="n">plot_path</span><span class="o">=</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/figures/&#39;</span>
 </pre></div>
@@ -150,7 +152,7 @@ Banksy(preferred) ,neighbor-based domains or read-based domains 6. <strong>Ident
 <h2>1. Format Xenium output to AnnData<a class="headerlink" href="#1.-Format-Xenium-output-to-AnnData" title="Link to this heading"></a></h2>
 <p>First, we will format the Xenium datasets to AnnData format, filtering in the process reads that have either too low quality or that are too far away from the segmented cell body. Fo this we need to define two parameters: - <strong>Max_nucleus_distance</strong>: maximum distance from the reads to each closest cell to consider reads in the definition of cells - <strong>min_quality</strong>: minimum quality of reads to be kept in the analysis</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="mi">10</span>
@@ -160,7 +162,7 @@ Banksy(preferred) ,neighbor-based domains or read-based domains 6. <strong>Ident
 </div>
 <p>Now we run the function <code class="docutils literal notranslate"><span class="pre">format_to_adata</span></code> to format Xenium’s output to AnnData</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="o">=</span><span class="n">format_to_adata</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span><span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span><span class="n">max_nucleus_distance</span><span class="o">=</span><span class="n">max_nucleus_distance</span><span class="p">,</span><span class="n">min_quality</span><span class="o">=</span><span class="n">min_quality</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">)</span>
@@ -172,7 +174,7 @@ Banksy(preferred) ,neighbor-based domains or read-based domains 6. <strong>Ident
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Formatting output-XETG00045__0011129__1225C__20231116__105020
+Formatting output-XETG00047__0011146__1886C__20231102__180733
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -180,7 +182,43 @@ Formatting output-XETG00045__0011129__1225C__20231116__105020
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/formatting.py:452: FutureWarning: X.dtype being converted to np.float32 from int64. In the next version of anndata (0.9) conversion will not be automatic. Pass dtype explicitly to avoid this warning. Pass `AnnData(X, dtype=X.dtype, ...)` to get the future behavour.
+/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/formatting.py:536: FutureWarning: X.dtype being converted to np.float32 from int64. In the next version of anndata (0.9) conversion will not be automatic. Pass dtype explicitly to avoid this warning. Pass `AnnData(X, dtype=X.dtype, ...)` to get the future behavour.
+  adata=sc.AnnData(ad.transpose(),obs=cell_info,var=features)
+/home/sergio/anaconda3/envs/xb_dev3/lib/python3.7/site-packages/anndata/_core/anndata.py:121: ImplicitModificationWarning: Transforming to str index.
+  warnings.warn(&#34;Transforming to str index.&#34;, ImplicitModificationWarning)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Filter reads
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/formatting.py:628: FutureWarning: X.dtype being converted to np.float32 from int64. In the next version of anndata (0.9) conversion will not be automatic. Pass dtype explicitly to avoid this warning. Pass `AnnData(X, dtype=X.dtype, ...)` to get the future behavour.
+  adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs,var=av)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Formatting output-XETG00047__0011146__1886P__20231102__180733
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/formatting.py:536: FutureWarning: X.dtype being converted to np.float32 from int64. In the next version of anndata (0.9) conversion will not be automatic. Pass dtype explicitly to avoid this warning. Pass `AnnData(X, dtype=X.dtype, ...)` to get the future behavour.
   adata=sc.AnnData(ad.transpose(),obs=cell_info,var=features)
 /home/sergio/anaconda3/envs/xb_dev3/lib/python3.7/site-packages/anndata/_core/anndata.py:121: ImplicitModificationWarning: Transforming to str index.
   warnings.warn(&#34;Transforming to str index.&#34;, ImplicitModificationWarning)
@@ -199,8 +237,10 @@ Filter reads
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/formatting.py:531: FutureWarning: X.dtype being converted to np.float32 from int64. In the next version of anndata (0.9) conversion will not be automatic. Pass dtype explicitly to avoid this warning. Pass `AnnData(X, dtype=X.dtype, ...)` to get the future behavour.
+/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/formatting.py:628: FutureWarning: X.dtype being converted to np.float32 from int64. In the next version of anndata (0.9) conversion will not be automatic. Pass dtype explicitly to avoid this warning. Pass `AnnData(X, dtype=X.dtype, ...)` to get the future behavour.
   adata1nuc=sc.AnnData(np.array(ct1),obs=adataobs,var=av)
+/home/sergio/anaconda3/envs/xb_dev3/lib/python3.7/site-packages/anndata/_core/anndata.py:1828: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates(&#34;obs&#34;)
 </pre></div></div>
 </div>
 </section>
@@ -251,8 +291,8 @@ CHECKPOINT 10: Label image saved
 </pre></div></div>
 </div>
 <p>After that we run the docker container, and within it we run baysor. <strong>IMPORTANT</strong> We recommend to run this part directly in your command line in case you need to run it as a superuser (with sudo)</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># we first run the docker, specifying the path tto the baysor input/output after the fist -v and also the path where the main we will use to run baysor is stored</span>
@@ -263,15 +303,6 @@ CHECKPOINT 10: Label image saved
 <span class="o">!</span>bash<span class="w"> </span>run_baysor.sh<span class="w"> </span><span class="s2">&quot;/media/sergio/xenium_b_and_heart/pipeline_output/output-XETG00045__0011129__1225C__20231116__105020_baysor&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-docker: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post &#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create&#34;: dial unix /var/run/docker.sock: connect: permission denied.
-See &#39;docker run --help&#39;.
-</pre></div></div>
 </div>
 <p>Finally, we define in <code class="docutils literal notranslate"><span class="pre">path</span></code> where is the output of baysor stored and we format it to anndata. From here, we can continue to step 3 without major issues</p>
 <div class="nbinput nblast docutils container">
@@ -300,7 +331,7 @@ See &#39;docker run --help&#39;.
 </ul>
 <p>The default parameters specified in the example correspond to the parameters found to be optimal when defining best practice. However, we always recommend to adjust them to your own convenience.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Formatting filesand preprocessing</span>
@@ -324,11 +355,10 @@ See &#39;docker run --help&#39;.
 </pre></div>
 </div>
 </div>
-</section>
 <section id="Preprocess-adata-using-predefined-parameters">
-<h2>Preprocess adata using predefined parameters<a class="headerlink" href="#Preprocess-adata-using-predefined-parameters" title="Link to this heading"></a></h2>
+<h3>Preprocess adata using predefined parameters<a class="headerlink" href="#Preprocess-adata-using-predefined-parameters" title="Link to this heading"></a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="o">=</span><span class="n">preprocess_adata</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">clustering_params</span><span class="o">=</span><span class="n">clustering_params</span><span class="p">,</span><span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
@@ -338,6 +368,15 @@ See &#39;docker run --help&#39;.
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/sergio/anaconda3/envs/xb_dev3/lib/python3.7/site-packages/anndata/_core/anndata.py:1828: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates(&#34;obs&#34;)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 WARNING: It seems you use rank_genes_groups on the raw count data. Please logarithmize your data before calling rank_genes_groups.
@@ -349,98 +388,98 @@ WARNING: It seems you use rank_genes_groups on the raw count data. Please logari
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_1.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_1.png" style="width: 1039px; height: 301px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_2.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_2.png" style="width: 1039px; height: 303px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_2.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_2.png" style="width: 2483px; height: 1249px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_3.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_3.png" style="width: 2464px; height: 1249px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_3.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_3.png" style="width: 1300px; height: 1299px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_4.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_4.png" style="width: 1300px; height: 1299px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_4.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_4.png" style="width: 1247px; height: 1205px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_5.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_5.png" style="width: 1247px; height: 1205px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_5.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_5.png" style="width: 1247px; height: 1205px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_6.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_6.png" style="width: 1257px; height: 1205px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_6.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_6.png" style="width: 1317px; height: 1205px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_7.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_7.png" style="width: 1317px; height: 1205px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_7.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_7.png" style="width: 1740px; height: 1205px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_8.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_8.png" style="width: 1739px; height: 1205px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_8.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_8.png" style="width: 622px; height: 991px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_9.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_9.png" style="width: 727px; height: 1231px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_9.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_9.png" style="width: 4817px; height: 2424px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_10.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_10.png" style="width: 4817px; height: 2424px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_10.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_10.png" style="width: 839px; height: 1470px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_11.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_11.png" style="width: 1063px; height: 1717px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_11.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_11.png" style="width: 4817px; height: 3564px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_12.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_12.png" style="width: 4817px; height: 3564px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_12.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_12.png" style="width: 1052px; height: 2195px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_13.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_13.png" style="width: 1234px; height: 2195px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_13.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_13.png" style="width: 4817px; height: 4704px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_14.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_14.png" style="width: 4817px; height: 4704px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_14.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_14.png" style="width: 1320px; height: 888px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_15.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_15.png" style="width: 1320px; height: 971px;" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -455,7 +494,7 @@ WARNING: It seems you use rank_genes_groups on the raw count data. Please logari
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_16.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_16.png" style="width: 1320px; height: 888px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_17.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_17.png" style="width: 1337px; height: 971px;" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -470,7 +509,52 @@ WARNING: It seems you use rank_genes_groups on the raw count data. Please logari
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_29_18.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_29_18.png" style="width: 1432px; height: 888px;" />
+<img alt="_images/end-to-end_pipeline_optimized_30_19.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_19.png" style="width: 1432px; height: 971px;" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 1500x1500 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/end-to-end_pipeline_optimized_30_21.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_21.png" style="width: 1320px; height: 778px;" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 1500x1500 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/end-to-end_pipeline_optimized_30_23.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_23.png" style="width: 1337px; height: 778px;" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 1500x1500 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/end-to-end_pipeline_optimized_30_25.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_30_25.png" style="width: 1432px; height: 778px;" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -482,23 +566,33 @@ WARNING: It seems you use rank_genes_groups on the raw count data. Please logari
 </pre></div></div>
 </div>
 </section>
+</section>
 <section id="4.-Domain-identification-(use-any-of-the-following-algorithms-in-4.1-3)">
 <h2>4. Domain identification (use any of the following algorithms in 4.1-3)<a class="headerlink" href="#4.-Domain-identification-(use-any-of-the-following-algorithms-in-4.1-3)" title="Link to this heading"></a></h2>
 <section id="4.1-Banksy's-domain-identification">
 <h3>4.1 Banksy’s domain identification<a class="headerlink" href="#4.1-Banksy's-domain-identification" title="Link to this heading"></a></h3>
 <p>[OPTIONAL] Read again the data</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;combined_processed.h5ad&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/sergio/anaconda3/envs/xb_dev3/lib/python3.7/site-packages/anndata/_core/anndata.py:1828: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates(&#34;obs&#34;)
+</pre></div></div>
+</div>
 <section id="Import-required-packages">
 <h4>Import required packages<a class="headerlink" href="#Import-required-packages" title="Link to this heading"></a></h4>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">xb.domain_identification</span> <span class="kn">import</span> <span class="o">*</span>
@@ -513,7 +607,7 @@ to 1 are used for relying on the expression of neighboring cells (for domain ide
 (dependent on inter-cell spatial distances) to edges in the connected spatial graph. By default, we use the gaussian decay option, where weights decay as a function of distnace to the index cell with = sigma. As default, we set to be the median distance between cells, and do not prescribe any cutoff-radius p_outside (no cutoff is conducted).</p>
 <p>Please refer to Banksy’s original publication Singhal et al. 2024</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;Input File&#39;&#39;&#39;</span>
@@ -528,12 +622,10 @@ to 1 are used for relying on the expression of neighboring cells (for domain ide
 </div>
 </div>
 </section>
-</section>
-</section>
 <section id="Run-Banksy">
-<h2>Run Banksy<a class="headerlink" href="#Run-Banksy" title="Link to this heading"></a></h2>
+<h4>Run Banksy<a class="headerlink" href="#Run-Banksy" title="Link to this heading"></a></h4>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="p">,</span><span class="n">adata_banksy</span><span class="o">=</span><span class="n">domains_by_banksy</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">plot_path</span><span class="o">=</span><span class="n">plot_path</span><span class="p">,</span><span class="n">banksy_params</span><span class="o">=</span><span class="n">banksy_params</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">)</span>
@@ -546,56 +638,56 @@ to 1 are used for relying on the expression of neighboring cells (for domain ide
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 
-Median distance to closest cell = 15.93073222507572
+Median distance to closest cell = 15.106551607756607
 
----- Ran median_dist_to_nearest_neighbour in 0.26 s ----
+---- Ran median_dist_to_nearest_neighbour in 0.64 s ----
 
----- Ran generate_spatial_distance_graph in 0.58 s ----
+---- Ran generate_spatial_distance_graph in 1.38 s ----
 
----- Ran row_normalize in 0.34 s ----
+---- Ran row_normalize in 1.15 s ----
 
----- Ran generate_spatial_weights_fixed_nbrs in 3.23 s ----
+---- Ran generate_spatial_weights_fixed_nbrs in 9.31 s ----
 
 ----- Plotting Edge Histograms for m = 0 -----
 
-Edge weights (distances between cells): median = 36.56547750123453, mode = 29.096702226237277
+Edge weights (distances between cells): median = 34.56489338313938, mode = 29.92653359499485
 
----- Ran plot_edge_histogram in 0.09 s ----
+---- Ran plot_edge_histogram in 0.14 s ----
 
 
-Edge weights (weights between cells): median = 0.05874199288453473, mode = 0.03418577958487133
+Edge weights (weights between cells): median = 0.05877572185687528, mode = 0.032933527590574184
 
----- Ran plot_edge_histogram in 0.09 s ----
+---- Ran plot_edge_histogram in 0.14 s ----
 
----- Ran generate_spatial_distance_graph in 0.94 s ----
+---- Ran generate_spatial_distance_graph in 2.14 s ----
 
----- Ran theta_from_spatial_graph in 0.81 s ----
+---- Ran theta_from_spatial_graph in 2.18 s ----
 
----- Ran row_normalize in 0.36 s ----
+---- Ran row_normalize in 1.16 s ----
 
----- Ran generate_spatial_weights_fixed_nbrs in 4.87 s ----
+---- Ran generate_spatial_weights_fixed_nbrs in 12.57 s ----
 
 ----- Plotting Edge Histograms for m = 1 -----
 
-Edge weights (distances between cells): median = 52.496262554127505, mode = 43.59619779472577
+Edge weights (distances between cells): median = 49.69937497424205, mode = 43.32784977890054
 
----- Ran plot_edge_histogram in 0.12 s ----
+---- Ran plot_edge_histogram in 0.21 s ----
 
 
-Edge weights (weights between cells): median = (-1.691483687921148e-05-0.006231254073301107j), mode = (-0.010185952673431392-0.0035421964827717493j)
+Edge weights (weights between cells): median = (1.3453800709411726e-05+0.004469004013761351j), mode = (0.010014964691843362+0.00368228208036008j)
 
----- Ran plot_edge_histogram in 0.22 s ----
+---- Ran plot_edge_histogram in 0.52 s ----
 
 ----- Plotting Weights Graph -----
-Maximum weight: 0.21366112240544582
+Maximum weight: 0.21955685060382787
 
----- Ran plot_graph_weights in 13.44 s ----
+---- Ran plot_graph_weights in 34.85 s ----
 
-Maximum weight: (0.08573186281193623-0.006310042712668536j)
+Maximum weight: (0.08713431717306296-0.0012601695417479744j)
 
----- Ran plot_graph_weights in 25.26 s ----
+---- Ran plot_graph_weights in 65.41 s ----
 
-Runtime May-03-2024-12-08
+Runtime Jun-14-2024-12-18
 
 541 genes to be analysed:
 Gene List:
@@ -609,31 +701,31 @@ Index([&#39;ABCC4&#39;, &#39;ABCC9&#39;, &#39;ACTN2&#39;, &#39;ADAMTS12&#39;, &#
       dtype=&#39;object&#39;, name=&#39;gene_id&#39;, length=541)
 
 Decay Type: scaled_gaussian
-Weights Object: {&#39;weights&#39;: {0: &lt;81613x81613 sparse matrix of type &#39;&lt;class &#39;numpy.float64&#39;&gt;&#39;
-        with 1224195 stored elements in Compressed Sparse Row format&gt;, 1: &lt;81613x81613 sparse matrix of type &#39;&lt;class &#39;numpy.complex128&#39;&gt;&#39;
-        with 2448390 stored elements in Compressed Sparse Row format&gt;}}
+Weights Object: {&#39;weights&#39;: {0: &lt;196570x196570 sparse matrix of type &#39;&lt;class &#39;numpy.float64&#39;&gt;&#39;
+        with 2948550 stored elements in Compressed Sparse Row format&gt;, 1: &lt;196570x196570 sparse matrix of type &#39;&lt;class &#39;numpy.complex128&#39;&gt;&#39;
+        with 5897100 stored elements in Compressed Sparse Row format&gt;}}
 
-Nbr matrix | Mean: 0.08 | Std: 0.25
-Size of Nbr | Shape: (81613, 541)
+Nbr matrix | Mean: 0.09 | Std: 0.25
+Size of Nbr | Shape: (196570, 541)
 Top 3 entries of Nbr Mat:
 
-[[0.         0.         0.11142679]
- [0.05165453 0.         0.0578835 ]
- [0.         0.01759948 0.1457314 ]]
+[[0.04155145 0.04730741 0.08066992]
+ [0.07221414 0.05093029 0.2353539 ]
+ [0.06404802 0.04749484 0.22760928]]
 
 AGF matrix | Mean: 0.02 | Std: 0.03
-Size of AGF mat (m = 1) | Shape: (81613, 541)
+Size of AGF mat (m = 1) | Shape: (196570, 541)
 Top entries of AGF:
-[[0.022894   0.         0.0503535 ]
- [0.03872498 0.         0.07591264]
- [0.0172909  0.01802004 0.07672909]]
-Ran &#39;Create BANKSY Matrix&#39; in 0.29 mins
+[[0.02035019 0.00812465 0.01449246]
+ [0.03237184 0.00993546 0.03555132]
+ [0.0431125  0.00850346 0.02896317]]
+Ran &#39;Create BANKSY Matrix&#39; in 0.78 mins
 
-Cell by gene matrix has shape (81613, 541)
+Cell by gene matrix has shape (196570, 541)
 
 Scale factors squared: [0.2        0.53333333 0.26666667]
 Scale factors: [0.4472136  0.73029674 0.51639778]
-Shape of BANKSY matrix: (81613, 1623)
+Shape of BANKSY matrix: (196570, 1623)
 Type of banksy_matrix: &lt;class &#39;anndata._core.anndata.AnnData&#39;&gt;
 
 Current decay types: [&#39;scaled_gaussian&#39;]
@@ -642,10 +734,10 @@ Reducing dims of dataset in (Index = scaled_gaussian, lambda = 0.8)
 ==================================================
 
 Setting the total number of PC = 20
-Original shape of matrix: (81613, 1623)
-Reduced shape of matrix: (81613, 20)
+Original shape of matrix: (196570, 1623)
+Reduced shape of matrix: (196570, 20)
 ------------------------------------------------------------
-min_value = -13.2515230178833, mean = 1.4377621937455842e-07, max = 38.134765625
+min_value = -12.465734481811523, mean = 2.384801973676076e-06, max = 26.507896423339844
 
 Conducting clustering with Leiden Parition
 Decay type: scaled_gaussian
@@ -659,48 +751,48 @@ Setting up partitioner for (nbr decay = scaled_gaussian), Neighbourhood contribu
 ====================================================================================================
 
 
-Nearest-neighbour weighted graph (dtype: float64, shape: (81613, 81613)) has 4080650 nonzero entries.
----- Ran find_nn in 177.48 s ----
+Nearest-neighbour weighted graph (dtype: float64, shape: (196570, 196570)) has 9828500 nonzero entries.
+---- Ran find_nn in 2197.69 s ----
 
 
-Nearest-neighbour connectivity graph (dtype: int16, shape: (81613, 81613)) has 4080650 nonzero entries.
+Nearest-neighbour connectivity graph (dtype: int16, shape: (196570, 196570)) has 9828500 nonzero entries.
 
 (after computing shared NN)
-Allowing nearest neighbours only reduced the number of shared NN from 106243721 to 4069186.
+Allowing nearest neighbours only reduced the number of shared NN from 305511494 to 9785171.
 
 
-Shared nearest-neighbour (connections only) graph (dtype: int16, shape: (81613, 81613)) has 3617260 nonzero entries.
+Shared nearest-neighbour (connections only) graph (dtype: int16, shape: (196570, 196570)) has 8231792 nonzero entries.
 
-Shared nearest-neighbour (number of shared neighbours as weights) graph (dtype: int16, shape: (81613, 81613)) has 3617260 nonzero entries.
+Shared nearest-neighbour (number of shared neighbours as weights) graph (dtype: int16, shape: (196570, 196570)) has 8231792 nonzero entries.
 
 sNN graph data:
-[36 32 39 ...  6  5  7]
+[ 7  9  7 ... 17 17 14]
 
----- Ran shared_nn in 11.80 s ----
+---- Ran shared_nn in 35.46 s ----
 
 
 -- Multiplying sNN connectivity by weights --
 
 
-shared NN with distance-based weights graph (dtype: float64, shape: (81613, 81613)) has 3617260 nonzero entries.
-shared NN weighted graph data: [0.08185906 0.08218067 0.08273258 ... 0.19671285 0.19685685 0.29895687]
+shared NN with distance-based weights graph (dtype: float64, shape: (196570, 196570)) has 8231792 nonzero entries.
+shared NN weighted graph data: [0.17257742 0.17265785 0.17291254 ... 0.29328497 0.33253759 0.42289093]
 
-Converting graph (dtype: float64, shape: (81613, 81613)) has 3617260 nonzero entries.
----- Ran csr_to_igraph in 1.38 s ----
+Converting graph (dtype: float64, shape: (196570, 196570)) has 8231792 nonzero entries.
+---- Ran csr_to_igraph in 3.84 s ----
 
 
 Resolution: 0.9
 ------------------------------
 
 ---- Partitioned BANKSY graph ----
-modularity: 0.76
-17 unique labels:
-[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16]
+modularity: 0.78
+18 unique labels:
+[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
 
----- Ran partition in 26.58 s ----
+---- Ran partition in 225.39 s ----
 
 Computing ARI for annotated labels
-Label Dense [ 8  8  8 ... 10 10  6]
+Label Dense [ 1  2  2 ... 17 17 17]
 
 After sorting Dataframe
 Shape of dataframe: (1, 8)
@@ -745,8 +837,8 @@ Shape of dataframe: (1, 8)
       <td>0.8</td>
       <td>20</td>
       <td>0.9</td>
-      <td>17</td>
-      <td>Label object:\nNumber of labels: 17, number of...</td>
+      <td>18</td>
+      <td>Label object:\nNumber of labels: 18, number of...</td>
       <td>[[[View of AnnData object with n_obs × n_vars ...</td>
       <td>0.0</td>
     </tr>
@@ -766,39 +858,39 @@ Anndata AxisArrays with keys: reduced_pc_20
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_39_3.png" src="_images/end-to-end_pipeline_optimized_39_3.png" />
+<img alt="_images/end-to-end_pipeline_optimized_40_3.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_40_3.png" style="width: 1467px; height: 734px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_39_4.png" src="_images/end-to-end_pipeline_optimized_39_4.png" />
+<img alt="_images/end-to-end_pipeline_optimized_40_4.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_40_4.png" style="width: 1467px; height: 734px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_39_5.png" src="_images/end-to-end_pipeline_optimized_39_5.png" />
+<img alt="_images/end-to-end_pipeline_optimized_40_5.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_40_5.png" style="width: 1924px; height: 1020px;" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_39_6.png" src="_images/end-to-end_pipeline_optimized_39_6.png" />
+<img alt="_images/end-to-end_pipeline_optimized_40_6.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_40_6.png" style="width: 1924px; height: 1020px;" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_39_7.png" src="_images/end-to-end_pipeline_optimized_39_7.png" />
+<img alt="_images/end-to-end_pipeline_optimized_40_7.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_40_7.png" style="width: 1217px; height: 1217px;" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
@@ -807,17 +899,26 @@ Anndata AxisArrays with keys: reduced_pc_20
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/end-to-end_pipeline_optimized_41_0.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_41_0.png" style="width: 1432px; height: 971px;" />
+</div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_40_0.png" src="_images/end-to-end_pipeline_optimized_40_0.png" />
+<img alt="_images/end-to-end_pipeline_optimized_41_1.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_41_1.png" style="width: 1432px; height: 778px;" />
 </div>
 </div>
+</section>
+</section>
 <section id="4.2-Neighbors-based-domain-identification-(NBD)">
 <h3>4.2 Neighbors-based domain identification (NBD)<a class="headerlink" href="#4.2-Neighbors-based-domain-identification-(NBD)" title="Link to this heading"></a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">xb.formatting</span> <span class="kn">import</span> <span class="n">format_data_neighs</span>
@@ -826,7 +927,7 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="p">,</span><span class="n">adata_nbd</span><span class="o">=</span><span class="n">domains_by_nbd</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">hyperparameters_nbd</span><span class="o">=</span><span class="n">hyperparameters_nbd</span><span class="p">)</span>
@@ -838,29 +939,37 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-100%|████████████████████████████████████████████████████| 16/16 [00:00&lt;00:00, 72.57it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████| 16/16 [00:00&lt;00:00, 28.37it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████| 16/16 [00:00&lt;00:00, 28.44it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_domains</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/end-to-end_pipeline_optimized_45_0.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_45_0.png" style="width: 1561px; height: 971px;" />
+</div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_44_0.png" src="_images/end-to-end_pipeline_optimized_44_0.png" />
+<img alt="_images/end-to-end_pipeline_optimized_45_1.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_45_1.png" style="width: 1561px; height: 787px;" />
 </div>
 </div>
 </section>
 <section id="4.3-Read-based-domains-identification-(RBD)">
 <h3>4.3 Read-based domains identification (RBD)<a class="headerlink" href="#4.3-Read-based-domains-identification-(RBD)" title="Link to this heading"></a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hyperparameters_rbd</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span><span class="s1">&#39;louvain_1.1&#39;</span><span class="p">,</span><span class="s1">&#39;resolution&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span><span class="s1">&#39;neighbors&#39;</span><span class="p">:</span><span class="mi">15</span><span class="p">,</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">:</span><span class="s1">&#39;leiden&#39;</span><span class="p">}</span>
@@ -868,7 +977,7 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="p">,</span><span class="n">adata_nbd</span><span class="o">=</span><span class="n">domains_by_rbd</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">hyperparameters_rbd</span><span class="o">=</span><span class="n">hyperparameters_rbd</span><span class="p">)</span>
@@ -880,14 +989,15 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-100%|█████████████████████████████████████████████| 81613/81613 [07:19&lt;00:00, 185.51it/s]
+100%|███████████████████████████████████████████████████████████████████████████| 196570/196570 [38:28&lt;00:00, 85.15it/s]
+100%|███████████████████████████████████████████████████████████████████████████| 196570/196570 [38:10&lt;00:00, 85.83it/s]
 </pre></div></div>
 </div>
 </section>
 <section id="4.4-Compare-domains-identified-by-different-algorithms">
 <h3>4.4 Compare domains identified by different algorithms<a class="headerlink" href="#4.4-Compare-domains-identified-by-different-algorithms" title="Link to this heading"></a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">domain_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rbd_domain&#39;</span><span class="p">,</span><span class="s1">&#39;nbd_domain&#39;</span><span class="p">]</span><span class="c1">#banksy_domain</span>
@@ -900,28 +1010,36 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 1500x1500 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_49_1.png" src="_images/end-to-end_pipeline_optimized_49_1.png" />
+<img alt="_images/end-to-end_pipeline_optimized_50_1.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_50_1.png" style="width: 439px; height: 451px;" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/end-to-end_pipeline_optimized_50_2.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_50_2.png" style="width: 1128px; height: 3900px;" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_49_2.png" src="_images/end-to-end_pipeline_optimized_49_2.png" />
+<img alt="_images/end-to-end_pipeline_optimized_50_3.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_50_3.png" style="width: 1330px; height: 3270px;" />
 </div>
 </div>
 </section>
-<section id="5.1-Imputation-using-SpaGE">
-<h3>5.1 Imputation using SpaGE<a class="headerlink" href="#5.1-Imputation-using-SpaGE" title="Link to this heading"></a></h3>
+</section>
+<section id="5-Imputation-using-SpaGE">
+<h2>5 Imputation using SpaGE<a class="headerlink" href="#5-Imputation-using-SpaGE" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -933,53 +1051,48 @@ Anndata AxisArrays with keys: reduced_pc_20
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<p>Please specify where the single cell data in the format of h5ad is stored</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Imp_genes</span><span class="o">=</span><span class="n">leave_one_out_validation</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">adata</span><span class="p">,</span><span class="n">genes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DRD1&#39;</span><span class="p">,</span><span class="s1">&#39;DRD2&#39;</span><span class="p">])</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata_sc</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;./data/data_end_to_end_pipeline/scRNAseq.h5ad&#39;</span><span class="p">)</span>
 </pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/Spage_main.py:352: RuntimeWarning: invalid value encountered in arccos
-  self.angles_ = np.arccos(np.diag(self.cosine_similarity_matrix_))
-/media/sergio/xenium_b_and_heart/actual_repo/Xenium_benchmarking/xb/Spage_main.py:352: RuntimeWarning: invalid value encountered in arccos
-  self.angles_ = np.arccos(np.diag(self.cosine_similarity_matrix_))
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_52_1.png" src="_images/end-to-end_pipeline_optimized_52_1.png" />
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_52_2.png" src="_images/end-to-end_pipeline_optimized_52_2.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+<span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+<span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+<span class="n">adata</span><span class="o">=</span><span class="n">adata</span><span class="p">[:,</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">adata_sc</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Imp_genes</span><span class="o">=</span><span class="n">leave_one_out_validation</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">adata_sc</span><span class="p">,</span><span class="n">genes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DRD1&#39;</span><span class="p">,</span><span class="s1">&#39;DRD2&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">new_genes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;DRD1&#39;</span><span class="p">,</span><span class="s1">&#39;DRD2&#39;</span><span class="p">]</span>
-<span class="n">Imp_New_Genes</span><span class="o">=</span><span class="n">gene_imputation</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">adata</span><span class="p">,</span><span class="n">new_genes</span><span class="p">)</span>
+<span class="n">Imp_New_Genes</span><span class="o">=</span><span class="n">gene_imputation</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">adata_sc</span><span class="p">,</span><span class="n">new_genes</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="6.Identifying-Spatially-variabile-genes-(SVF)-by-Squidpy's-Moran-I">
-<h3>6.Identifying Spatially variabile genes (SVF) by Squidpy’s Moran I<a class="headerlink" href="#6.Identifying-Spatially-variabile-genes-(SVF)-by-Squidpy's-Moran-I" title="Link to this heading"></a></h3>
+<h2>6.Identifying Spatially variabile genes (SVF) by Squidpy’s Moran I<a class="headerlink" href="#6.Identifying-Spatially-variabile-genes-(SVF)-by-Squidpy's-Moran-I" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[61]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="p">,</span><span class="n">hs_results</span><span class="o">=</span><span class="n">svf_moranI</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">50.0</span><span class="p">)</span>
@@ -987,7 +1100,7 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[62]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hs_results</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
@@ -995,7 +1108,7 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[62]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1024,75 +1137,74 @@ Anndata AxisArrays with keys: reduced_pc_20
   </thead>
   <tbody>
     <tr>
-      <th>MT-CO2</th>
+      <th>EFHD1</th>
       <td>0.0</td>
       <td>0.0</td>
-      <td>541.0</td>
+      <td>364.0</td>
     </tr>
     <tr>
-      <th>CD44</th>
+      <th>THBS1</th>
       <td>0.0</td>
       <td>0.0</td>
-      <td>540.0</td>
+      <td>363.0</td>
     </tr>
     <tr>
-      <th>HSPA1B</th>
+      <th>FCGR3A</th>
       <td>0.0</td>
       <td>0.0</td>
-      <td>539.0</td>
-    </tr>
-    <tr>
-      <th>IGFBP5</th>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>538.0</td>
-    </tr>
-    <tr>
-      <th>ANXA1</th>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>537.0</td>
-    </tr>
-    <tr>
-      <th>HSPA1A</th>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>536.0</td>
-    </tr>
-    <tr>
-      <th>CRYAB</th>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>535.0</td>
+      <td>362.0</td>
     </tr>
     <tr>
       <th>MOBP</th>
       <td>0.0</td>
       <td>0.0</td>
-      <td>534.0</td>
+      <td>361.0</td>
     </tr>
     <tr>
-      <th>JUN</th>
+      <th>IGFBP4</th>
       <td>0.0</td>
       <td>0.0</td>
-      <td>533.0</td>
+      <td>360.0</td>
     </tr>
     <tr>
-      <th>SERPINA3</th>
+      <th>ATP5F1E</th>
       <td>0.0</td>
       <td>0.0</td>
-      <td>532.0</td>
+      <td>359.0</td>
+    </tr>
+    <tr>
+      <th>GAPDH</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>358.0</td>
+    </tr>
+    <tr>
+      <th>CRYAB</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>357.0</td>
+    </tr>
+    <tr>
+      <th>ERMN</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>356.0</td>
+    </tr>
+    <tr>
+      <th>DBNDD2</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>355.0</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
 </section>
-</section>
 <section id="7.-Defining-neighborhood-enrichment-of-celltypes-using-Squidpy">
 <h2>7. Defining neighborhood enrichment of celltypes using Squidpy<a class="headerlink" href="#7.-Defining-neighborhood-enrichment-of-celltypes-using-Squidpy" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[54]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">xb.neighborhood</span> <span class="kn">import</span> <span class="o">*</span>
@@ -1100,7 +1212,7 @@ Anndata AxisArrays with keys: reduced_pc_20
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[55]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span><span class="o">=</span><span class="n">nhood_squidpy</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span><span class="n">sample_key</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span><span class="n">cluster_key</span><span class="o">=</span><span class="s1">&#39;louvain_1.1&#39;</span><span class="p">,</span><span class="n">plot_path</span><span class="o">=</span><span class="n">plot_path</span><span class="p">,</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues&#39;</span><span class="p">)</span>
@@ -1111,13 +1223,13 @@ Anndata AxisArrays with keys: reduced_pc_20
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "9bdf377b2ea44ef9b2799e4df33b4273", "version_major": 2, "version_minor": 0}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "f374b35fd87d4efc810a6e3f15e7f4dd", "version_major": 2, "version_minor": 0}</script></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/end-to-end_pipeline_optimized_59_1.png" src="_images/end-to-end_pipeline_optimized_59_1.png" />
+<img alt="_images/end-to-end_pipeline_optimized_63_1.png" class="no-scaled-link" src="_images/end-to-end_pipeline_optimized_63_1.png" style="width: 945px; height: 1041px;" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
