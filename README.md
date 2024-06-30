@@ -55,3 +55,10 @@ And install using pip:
 
 ```pip install -e . ```
 
+***
+
+## Documentation
+Extended documentation of the functions included in this repository as well as a the ```END-TO-END PIPELINE``` can be found in: 
+https://xenium-benchmarking-test.readthedocs.io/en/latest/index.html
+
+***
